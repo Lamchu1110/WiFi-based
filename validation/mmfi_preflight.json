@@ -1,0 +1,12 @@
+{
+  "train_samples": 27972,
+  "val_samples": 5994,
+  "test_samples": 5994,
+  "frames_per_batch": 256,
+  "status": "PASS",
+  "dataset": "MM-Fi real archive",
+  "window": 8,
+  "split_mode": "sequence",
+  "training_started": false,
+  "checks": "GT/index validation and first/last windows in each split; not an exhaustive scan of all CSI values"
+}

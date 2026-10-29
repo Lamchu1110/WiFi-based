@@ -1,3 +1,5 @@
+> Historical V1 documentation. For current behavior see [training v2](README_V2.md).
+
 # Code cũ có gì, gói mới có gì?
 
 ## 1. Hai thư mục nằm cạnh nhau

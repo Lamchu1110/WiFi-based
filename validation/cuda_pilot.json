@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "device": "NVIDIA GeForce GTX 1650 Ti",
+  "precision": "bfloat16 AMP; FP32 loss",
+  "checks": [
+    "two finite optimizer updates",
+    "atomic checkpoint",
+    "CUDA RNG/scaler resume"
+  ],
+  "data": "synthetic; not a quality/throughput benchmark"
+}

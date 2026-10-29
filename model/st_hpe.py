@@ -12,36 +12,59 @@ from .tcn_block import MultiScaleDilatedTCN
 
 
 class STHPE(nn.Module):
-    def __init__(self, dataset="mmfi", use_tcn=True, direct_3d=True):
+    architecture_version = 2
+
+    def __init__(self, dataset="mmfi", use_tcn=True, direct_3d=True, temporal_axis="csi"):
         super().__init__()
         if dataset not in ("mmfi", "wipose"):
             raise ValueError("dataset must be mmfi or wipose")
         self.dataset = dataset
         self.joints = 17 if dataset == "mmfi" else 18
         self.direct_3d = direct_3d
+        if temporal_axis not in ("csi", "pose"):
+            raise ValueError("temporal_axis must be csi or pose")
+        self.temporal_axis = temporal_axis
+        self.use_tcn = use_tcn
         self.backbone = OriginalHPE() if dataset == "mmfi" else HPEWiPoseModel()
         channels = 128 if dataset == "mmfi" else 256
-        self.tcn = MultiScaleDilatedTCN(channels) if use_tcn else nn.Identity()
         if direct_3d:
             old = self.backbone.regression.fc3
             self.backbone.regression.fc3 = nn.Linear(old.in_features, self.joints * 3)
+        # Keep backbone/decoder initialization identical across XYZ ablations.
+        self.tcn = MultiScaleDilatedTCN(channels) if use_tcn else nn.Identity()
 
     def forward(self, x):
         start = time.perf_counter()
         if x.ndim not in (4, 5):
             raise ValueError("Expected [B,C,F,T] or [B,W,C,F,T]")
         sequence_shape = x.shape[:2] if x.ndim == 5 else None
+        expected = (3, 114, 10) if self.dataset == "mmfi" else (9, 30, 5)
+        if tuple(x.shape[-3:]) != expected:
+            raise ValueError(f"Expected CSI shape {expected}, got {tuple(x.shape[-3:])}")
+        if self.use_tcn and self.temporal_axis == "pose" and (sequence_shape is None or sequence_shape[1] < 2):
+            raise ValueError("Pose TCN needs ordered [B,W,C,F,T] windows with W>=2")
         if sequence_shape is not None:
             x = x.flatten(0, 1)
         pool = torch.nn.functional.avg_pool2d
-        x = pool(self.backbone.skunit1(x), (2, 2))
+        # In WiPose CSI mode keep all five measured time samples until the TCN.
+        keep_csi = self.dataset == "wipose" and self.use_tcn and self.temporal_axis == "csi"
+        pool_size = (2, 1) if keep_csi else (2, 2)
+        x = pool(self.backbone.skunit1(x), pool_size)
         x = self.backbone.skunit2(x)
         if self.dataset == "wipose":
-            x = self.backbone.skunit3(pool(x, (2, 2)))
-        # Reduce only frequency, retain CSI time. Broadcast temporal residual
-        # over frequencies so that the original decoder dimensions are retained.
-        temporal = x.mean(dim=2)
-        x = x + (self.tcn(temporal) - temporal).unsqueeze(2)
+            x = self.backbone.skunit3(pool(x, pool_size))
+        # Convolve measured CSI time or ordered pose time explicitly, then
+        # broadcast only the learned correction to preserve decoder geometry.
+        if self.use_tcn and self.temporal_axis == "pose":
+            batch, width = sequence_shape
+            temporal = x.mean(dim=(2, 3)).reshape(batch, width, x.shape[1]).transpose(1, 2)
+            correction = (self.tcn(temporal) - temporal).transpose(1, 2).reshape(batch*width, x.shape[1], 1, 1)
+            x = x + correction
+        elif self.use_tcn:
+            temporal = x.mean(dim=2)
+            x = x + (self.tcn(temporal) - temporal).unsqueeze(2)
+        if keep_csi:
+            x = torch.nn.functional.adaptive_avg_pool2d(x, (7, 1))
         if self.dataset == "mmfi":
             x = pool(x, (2, 2))
         pose = self.backbone.regression(x).reshape(

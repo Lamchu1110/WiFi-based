@@ -12,7 +12,7 @@ Thư mục chứa ba file `train.npz`, `val.npz`, `test.npz`. Mỗi file dùng `
 | `coordinate_unit` | scalar string `m` | XY hoặc XYZ đã quy về mét |
 | `windows_ordered` | scalar bool | Full cầnTrue: frame cùng sequence, liên tiếp, đúng thứ tự |
 
-Full yêu cầu `target_format='xyz'`, input windowW>=2, `windows_ordered=True`. Baseline/TCN dùng frame riêng4D; nếu schemaXYZ thì lossXY không lấyZ làm confidence. Các split phải khai báo cùngtarget_format. NPZ được nạp vàoRAM, cần đủ bộ nhớ cho ba split.
+Các kịch bản XYZ yêu cầu `target_format='xyz'`, input window W>=2, `windows_ordered=True`. Nên dùng W=8 để nhánh dilation4 có frame lân cận thật. Baseline/TCN XY nhận frame 4D hoặc window 5D được khai báo đúng thứ tự; nếu schema XYZ thì loss XY không lấy Z làm confidence. Các split phải khai báo cùng target_format và chiều window. NPZ được nạp vào RAM, cần đủ bộ nhớ cho ba split.
 
 Ví dụ lưu **các mảng đã được chuẩn bị và xác minh** (không phải tạo nhãn giả):
 

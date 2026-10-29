@@ -1,5 +1,7 @@
 # Bằng chứng kiểm thử gói portable
 
+**V2 ngày 29/10/2026:** summary/log đã được cập nhật cho engine mới. Xem `test_reliability.py.log` (13 test), `cuda_pilot.json` (BF16/resume trên GPU) và `mmfi_preflight.json` (chỉ kiểm tra dữ liệu thật, không train). Bằng chứng archive được cập nhật theo gói v2.
+
 Kiểm thử ngày 29/10/2026 bằng Python3.12 trên CPU, cwd là chính thư mục ST-HPE-Portable, không import repo nguồn.
 
 - `summary.json`: kiểm tra cú pháp và mã kết thúc của ba bài test, đều PASS.

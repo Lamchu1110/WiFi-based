@@ -1,38 +1,38 @@
 
 ========================================================================
-RUN START: 2026-10-29T13:18:42+07:00
-Log: C:\Users\legion\NCKH\Đồ Án 3\ST-HPE-Portable\logs\sanity.log
-PyTorch: 2.13.0+cu126; device: cuda
+RUN START: 2026-10-29T15:07:46+07:00
+Log: C:\Users\legion\NCKH\WiFi-based-publish\logs\sanity.log
+PyTorch: 2.13.0+cu126; device: cpu
 THOP counts supported module operations; functional ops are not fully covered.
 FLOPs estimate = 2 * THOP MACs; batch=1, per pose (not per window).
 
 [mmfi] input=(4, 3, 114, 10)
-Baseline PASS: output=(4, 17, 2), loss=1.27751708, finite gradients=66
-  frame L_mse=1.36289895
-  frame L_bone=1.71834564
-  frame L_smooth=-0.00000000
-  frame L_sym=0.41321325
-ST-HPE PASS: output=(4, 17, 3), loss=1.54299784, finite gradients=76
-  sequence L_mse=1.14483500
-  sequence L_bone=1.30872977
-  sequence L_smooth=1.98516810
-  sequence L_sym=0.44703326
+Baseline PASS: output=(4, 17, 2), loss=1.11272752, finite gradients=66
+  frame L_mse=1.15498841
+  frame L_bone=1.48600340
+  frame L_smooth=0.00000000
+  frame L_sym=1.19039214
+ST-HPE PASS: output=(4, 17, 3), loss=1.32739663, finite gradients=76
+  sequence L_mse=1.20031059
+  sequence L_bone=1.47034204
+  sequence L_smooth=2.33940244
+  sequence L_sym=1.06906176
 ST-HPE sequence forward/backward and warm-up PASS
 All four loss component gradients PASS
 Parameter increase: 0.250065M
 Disabled upgrades match baseline PASS
 
 [wipose] input=(4, 9, 30, 5)
-Baseline PASS: output=(4, 18, 2), loss=1.31082988, finite gradients=95
-  frame L_mse=0.99941045
-  frame L_bone=1.33457887
+Baseline PASS: output=(4, 18, 2), loss=1.08672833, finite gradients=95
+  frame L_mse=1.48385644
+  frame L_bone=1.31383300
   frame L_smooth=0.00000000
-  frame L_sym=0.41245046
-ST-HPE PASS: output=(4, 18, 3), loss=1.14111733, finite gradients=105
-  sequence L_mse=1.24872673
-  sequence L_bone=1.44664490
-  sequence L_smooth=2.34923196
-  sequence L_sym=0.45669156
+  frame L_sym=0.97180188
+ST-HPE PASS: output=(4, 18, 3), loss=1.63467574, finite gradients=105
+  sequence L_mse=1.23274601
+  sequence L_bone=1.35331082
+  sequence L_smooth=2.24747014
+  sequence L_sym=1.06980574
 ST-HPE sequence forward/backward and warm-up PASS
 All four loss component gradients PASS
 Parameter increase: 0.250450M
@@ -42,7 +42,7 @@ Dataset | Model | Params (M), all registered | THOP MACs (G) | estimated FLOPs (
 mmfi | Baseline | 1.058834 | 0.343540 | 0.687080
 mmfi | ST-HPE | 1.308899 | 0.344795 | 0.689589
 wipose | Baseline | 6.174484 | 0.058419 | 0.116838
-wipose | ST-HPE | 6.424934 | 0.058670 | 0.117340
+wipose | ST-HPE | 6.424934 | 0.153869 | 0.307738
 WiPose baseline registers unused skunit4; all-parameter counts include it.
 WiPose real loader returns XY + confidence, not verified XYZ labels.
 RESULT: PASS; issues=[]

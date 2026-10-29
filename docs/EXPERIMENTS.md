@@ -1,3 +1,5 @@
+> Historical V1 documentation. For current behavior see [training v2](README_V2.md).
+
 # MM-Fi ablation
 
 Chạy từ thư mục chứa `run_experiments.py`:

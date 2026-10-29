@@ -31,10 +31,11 @@ def main():
         from wipose import WiPoseDataset
         sample = WiPoseDataset(native)[0]
         raw = scipy.io.loadmat(native/'Train/000.mat')
-        from torchvision.transforms import Normalize
         from wipose.wipose_dataset import MEAN, STD
         import torch
-        expected = Normalize(MEAN,STD)(torch.from_numpy(raw['CSI'].transpose(3,2,1,0).reshape(9,30,5)))
+        raw_csi = raw['CSI'].transpose(3,2,1,0).reshape(9,30,5)
+        expected = torch.from_numpy(((raw_csi-np.asarray(MEAN,dtype='float32')[:,None,None]) /
+                                    np.asarray(STD,dtype='float32')[:,None,None]).copy())
         torch.testing.assert_close(sample['input_wifi-csi'],expected)
         torch.testing.assert_close(sample['output'][:,:2],torch.from_numpy(raw['SkeletonPoints'][:2].T)*0.001)
         print('Native MAT normalization/XY/confidence PASS', flush=True)

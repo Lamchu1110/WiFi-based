@@ -18,7 +18,7 @@ def main():
     with tempfile.TemporaryDirectory(prefix="mmfi_smoke_") as temporary:
         work = Path(temporary)
         data = work / "Dataset"
-        for subject, count in (("S01", 8), ("S02", 4)):
+        for subject, count in (("S01", 8), ("S02", 4), ("S03",4)):
             action = data / "E01" / subject / "A01"
             csi = action / "wifi-csi"
             csi.mkdir(parents=True)
@@ -32,20 +32,33 @@ def main():
         config = {"data_unit": "frame", "modality": "wifi-csi", "protocol": "protocol3",
                   "split_to_use": "manual_split", "manual_split": {
                       "train_dataset": {"subjects": ["S01"], "actions": ["A01"]},
-                      "val_dataset": {"subjects": ["S02"], "actions": ["A01"]}}}
+                      "val_dataset": {"subjects": ["S02","S03"], "actions": ["A01"]}}}
         config_path = work / "config.yaml"
         config_path.write_text(yaml.safe_dump(config), encoding="utf-8")
-        output = root / "runs_smoke"
+        output = root / "runs_smoke/mmfi"
         subprocess.run([sys.executable, str(root / "run_experiments.py"), "--scenario", "all",
                         "--dataset-root", str(data), "--config", str(config_path),
                         "--epochs", "1", "--batch-size", "4", "--window", "2",
+                        "--device", "cpu",
                         "--output", str(output)], check=True)
         suite = max(output.iterdir(), key=lambda p: p.name)
         for scenario in ("baseline", "tcn", "full"):
             directory = suite / scenario
             assert json.loads((directory / "status.json").read_text())["status"] == "complete"
-            for name in ("metrics.csv", "test_metrics.json", "best.pt", "last.pt", "split_indices.npz"):
+            for name in ("metrics.csv", "test_metrics.json", "best.pt", "last.pt", "split.json"):
                 assert (directory / name).is_file(), name
+        signatures = [json.loads((suite/s/"config.json").read_text())["contract"]["data_fingerprint"] for s in ('baseline','tcn','full')]
+        assert len(set(signatures)) == 1, 'Scenarios must share the same windows and splits'
+        subprocess.run([sys.executable,str(root/'train_mmfi.py'),'--scenario','xyz_all',
+                        '--dataset-root',str(data),'--config',str(config_path),'--epochs','1',
+                        '--batch-size','4','--window','2','--device','cpu','--select-metric','MPJPE_xyz_mm',
+                        '--output',str(output)],check=True)
+        controlled = max(output.iterdir(),key=lambda p:p.name)
+        for scenario in ('xyz','xyz_tcn','xyz_kinematic','full'):
+            assert json.loads((controlled/scenario/'status.json').read_text())['status']=='complete'
+            contract=json.loads((controlled/scenario/'config.json').read_text())['contract']
+            assert contract['data_fingerprint']==signatures[0]
+            assert contract['target_format']=='xyz'
         print(f"Synthetic training smoke PASS: {suite}")
 
 

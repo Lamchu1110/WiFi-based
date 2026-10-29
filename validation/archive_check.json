@@ -1,8 +1,8 @@
 {
-  "isolated_extraction_imports": "PASS",
-  "source_checksum_verification": "PASS",
-  "mmfi_and_wipose_cli_help": "PASS",
+  "release": "ST-DSKPose-v2",
+  "isolated_imports": "PASS",
+  "source_checksums": "PASS",
+  "both_cli_help": "PASS",
   "zip_crc": "PASS",
-  "no_dataset_or_checkpoints": "PASS",
-  "note": "Verified in a temporary extraction, independent from source repository."
+  "no_dataset_or_weights": "PASS"
 }

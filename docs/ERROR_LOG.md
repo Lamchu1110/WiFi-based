@@ -1,5 +1,15 @@
 # Nhật ký sửa lỗi và kiểm thử
 
+## 2026-10-29 — Training v2
+
+- Sửa WiPose CSI-TCN còn T=1; nay giữ T=5. Thêm pose-TCN theo window thật, mặc định W=8 cho MM-Fi.
+- Bỏ Z-weighted XY loss mặc định, có legacy flag. Thêm symmetry theo GT, confidence mask và các ablation XYZ chung initialization/window/split.
+- Thêm GT cache, sequence split, atomic checkpoint/resume giữa epoch, RNG/cursor/optimizer/scaler, OS lock, gradient clipping và các metric vận tốc/gia tốc.
+- Phát hiện FP16 NaN trong Conv2d trên GPU nguồn; giữ FP32 mặc định. Pilot BF16 hai update và CUDA resume đã PASS; không kết luận tốc độ từ BF16.
+- Sửa smoke test chọn nhầm thư mục WiPose khi chạy lại MM-Fi; output mỗi dataset được tách riêng.
+- Kiểm thử CPU và hồi quy có log trong validation; preflight MM-Fi thật W=8 PASS: 27972 train /5994 val /5994 test windows. Không chạy train dài mới trong lần sửa này.
+- Chi tiết thay đổi và các hạn chế còn lại: [V2_CHANGELOG.md](V2_CHANGELOG.md). Các mục dưới đây là lịch sử trước v2.
+
 Ghi thêm mục mới sau mỗi lần sửa và kiểm thử; giữ lại lịch sử cũ. Chỉ đánh dấu đã sửa khi có kết quả kiểm chứng.
 
 ## Cách lưu kết quả

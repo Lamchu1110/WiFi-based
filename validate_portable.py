@@ -15,11 +15,11 @@ def main():
     for path in root.rglob('*.py'):
         if '.venv' not in path.parts:
             py_compile.compile(str(path), doraise=True)
-    env = {**os.environ, 'CUDA_VISIBLE_DEVICES':'', 'PYTHONUTF8':'1',
+    env = {**os.environ, 'CUDA_VISIBLE_DEVICES':'-1', 'PYTHONUTF8':'1',
            'OMP_NUM_THREADS':'2', 'MKL_NUM_THREADS':'2', 'PYTHONPATH':str(root)}
     results = {'timestamp':datetime.now(timezone(timedelta(hours=7))).isoformat(timespec='seconds'),
                'python':sys.version, 'device':'cpu', 'syntax':'PASS', 'tests':{}}
-    for script in ('test_sanity.py','test_training_smoke.py','test_wipose_smoke.py'):
+    for script in ('test_sanity.py','test_training_smoke.py','test_wipose_smoke.py','test_reliability.py'):
         with (evidence/(script+'.log')).open('w',encoding='utf-8') as logfile:
             process = subprocess.run([sys.executable,'-X','utf8',str(root/script)], cwd=root,
                                      env=env, stdout=logfile, stderr=subprocess.STDOUT)

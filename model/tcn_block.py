@@ -9,6 +9,8 @@ class MultiScaleDilatedTCN(nn.Module):
         # 320 channels for MM-Fi / 160 for WiPose: about 0.25M extra
         # parameters including the XYZ decoder, for either backbone.
         mid_channels = mid_channels if mid_channels is not None else max(1, 40960 // channels)
+        if channels < 1 or mid_channels < 1:
+            raise ValueError("Channel counts must be positive")
         self.branches = nn.ModuleList([
             nn.Sequential(
                 nn.Conv1d(channels, channels, 3, padding=d, dilation=d,
