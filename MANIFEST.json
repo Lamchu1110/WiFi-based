@@ -1,0 +1,234 @@
+{
+  "release": "ST-DSKPose-2026-10-29",
+  "source_project": "HPE-Li-ECCV2024",
+  "data_included": false,
+  "trained_weights_included": false,
+  "checksum_scope": "source and docs; validation outputs excluded",
+  "files": [
+    {
+      "path": ".gitignore",
+      "sha256": "3892373b4a2af3fa397c0ca1de4c5b67390a974d5edacc76984f8a3a5d91ee75",
+      "origin": "adapted_for_github_repository",
+      "source_sha256": "cd83322170e507f1bb8e3e238643a0481b23f09f6aaf8eb31592c7168bd1b6f2",
+      "portable_snapshot_sha256": "06aaa3d94ee8b349c925e0536fb04a2a3f2f44b4f77c591d92268c1af4714faf"
+    },
+    {
+      "path": "dataset_lib/__init__.py",
+      "sha256": "8dda7b1d88f6f93b4fd2938eb51e467a9b1896ebc1325c18c903040edb55b522",
+      "origin": "copied_identically",
+      "source_sha256": "8dda7b1d88f6f93b4fd2938eb51e467a9b1896ebc1325c18c903040edb55b522"
+    },
+    {
+      "path": "dataset_lib/config.yaml",
+      "sha256": "a2fdc25c257ef31e75f94a81c367da9a3cd18cd1ac157f42d1014082bc023e15",
+      "origin": "copied_identically",
+      "source_sha256": "a2fdc25c257ef31e75f94a81c367da9a3cd18cd1ac157f42d1014082bc023e15"
+    },
+    {
+      "path": "dataset_lib/mmfi.py",
+      "sha256": "4cd487fe7ecf9849f6f7b5e4efa1b347da3750df7ca985225c7d8c841f110289",
+      "origin": "copied_identically",
+      "source_sha256": "4cd487fe7ecf9849f6f7b5e4efa1b347da3750df7ca985225c7d8c841f110289"
+    },
+    {
+      "path": "dataset_lib/mmfi_zip.py",
+      "sha256": "df3200e2fa621f37bfd496fcdae93a1c140f6a1024b52b302548c2e552bd41d2",
+      "origin": "copied_identically",
+      "source_sha256": "df3200e2fa621f37bfd496fcdae93a1c140f6a1024b52b302548c2e552bd41d2"
+    },
+    {
+      "path": "docs/DATA_FORMAT.md",
+      "sha256": "dfa9abf8f82579ddfe3e7eca739dc473ce7e3174e4507b589eea3672bae38d77",
+      "origin": "new_portable_file",
+      "source_sha256": null
+    },
+    {
+      "path": "docs/ERROR_LOG.md",
+      "sha256": "58868ded09e0766e85a6144c0211265a41d894a68d379cdc12dd8d81150fe888",
+      "origin": "new_portable_file",
+      "source_sha256": null
+    },
+    {
+      "path": "docs/EXPERIMENTS.md",
+      "sha256": "e67f522369b5cd9611cb00dd58efa7cb21f2f2030d973b47bcfb2cb6ca4c2cb7",
+      "origin": "new_portable_file",
+      "source_sha256": null
+    },
+    {
+      "path": "docs/SO_SANH_CODE_CU_MOI.md",
+      "sha256": "97ec5c0cc4d09ae67d07e3590b1aac2efc0847b2832818fd6d28a6be793cf1a3",
+      "origin": "new_portable_file",
+      "source_sha256": null
+    },
+    {
+      "path": "docs/UPSTREAM_README.md",
+      "sha256": "f3c15ed2c1c0defdbcaf41bb1487e1c6da24417a43c83ce80c132a936fa01085",
+      "origin": "new_portable_file",
+      "source_sha256": null
+    },
+    {
+      "path": "model/__init__.py",
+      "sha256": "60cf7cc9f0729ad4a274d92634b5ea29e6eedcd80154704e2b17c4e0044ddee9",
+      "origin": "adapted_in_portable_only",
+      "source_sha256": "7beb520d94d96ea6c41f23a218c6a414c472cef8a449c0e4cea16f5128cbbd67"
+    },
+    {
+      "path": "model/HPE_no_denoiser.py",
+      "sha256": "891c4cb4ed8cc38eb1fb60d9e564eb060c92c4e3ea5b8dd241eafcb5bf5a6b3d",
+      "origin": "copied_identically",
+      "source_sha256": "891c4cb4ed8cc38eb1fb60d9e564eb060c92c4e3ea5b8dd241eafcb5bf5a6b3d"
+    },
+    {
+      "path": "model/HPE_Wipose.py",
+      "sha256": "248d5f82427d935514f4eeb6a6760567d92f388cdf7be62eea6d81ba4c1c533d",
+      "origin": "copied_identically",
+      "source_sha256": "248d5f82427d935514f4eeb6a6760567d92f388cdf7be62eea6d81ba4c1c533d"
+    },
+    {
+      "path": "model/st_hpe.py",
+      "sha256": "58f3cd2ecba9e85e64511e0f0884f4310edf6d372528793468a971e036e774e1",
+      "origin": "copied_identically",
+      "source_sha256": "58f3cd2ecba9e85e64511e0f0884f4310edf6d372528793468a971e036e774e1"
+    },
+    {
+      "path": "model/tcn_block.py",
+      "sha256": "8e761ffeac25c70a0c596edf776fd82392009b75758a0756dabf47d007f4e7d7",
+      "origin": "copied_identically",
+      "source_sha256": "8e761ffeac25c70a0c596edf776fd82392009b75758a0756dabf47d007f4e7d7"
+    },
+    {
+      "path": "model/utils/__init__.py",
+      "sha256": "ba5496b5a0981ed17acdafd66ab817b4a2c0f15b788d5a94b3e34858960e0fb2",
+      "origin": "adapted_in_portable_only",
+      "source_sha256": "bf02b23860f5e4145f29ac823ca6d5509b90a1ea20fab807d9131e23b5468807"
+    },
+    {
+      "path": "model/utils/regression.py",
+      "sha256": "c2735c46637f6a4a33be1da6345eb39430e0642ee480e29444b5a55ab220f216",
+      "origin": "copied_identically",
+      "source_sha256": "c2735c46637f6a4a33be1da6345eb39430e0642ee480e29444b5a55ab220f216"
+    },
+    {
+      "path": "model/utils/SKNet.py",
+      "sha256": "d70701154c662bcad61397f61982d693fa1437f67799df6e45305c05636ea11a",
+      "origin": "copied_identically",
+      "source_sha256": "d70701154c662bcad61397f61982d693fa1437f67799df6e45305c05636ea11a"
+    },
+    {
+      "path": "model/utils/utils.py",
+      "sha256": "4981bf207b485cb7289c25b805f7eb42944e378d31a729c4e073789f947bd214",
+      "origin": "copied_identically",
+      "source_sha256": "4981bf207b485cb7289c25b805f7eb42944e378d31a729c4e073789f947bd214"
+    },
+    {
+      "path": "README.md",
+      "sha256": "6ec2ba917ddb3bb18391f539bccf1a94e4a576d17b4f2e975bc95fc11139071e",
+      "origin": "adapted_for_github_repository",
+      "source_sha256": "f3c15ed2c1c0defdbcaf41bb1487e1c6da24417a43c83ce80c132a936fa01085",
+      "portable_snapshot_sha256": "1138f21984c4c74a9f305d7255ce7a08e67db4971c72856a2321303de0c15a16"
+    },
+    {
+      "path": "requirements-wipose.txt",
+      "sha256": "9a3839fb4b7158d2681ec020760cc6ec3e14d0dea99b8b6fc41cfbfa7ef88128",
+      "origin": "new_portable_file",
+      "source_sha256": null
+    },
+    {
+      "path": "requirements.txt",
+      "sha256": "bb1dd251cd5a03b1aab906dadf8c782b59a7b20371b9a898010b57e90114e7f4",
+      "origin": "new_portable_file",
+      "source_sha256": null
+    },
+    {
+      "path": "run_experiments.py",
+      "sha256": "79a4d60ffc6e3a8d0ccd6f85c6daabb2cabf97cf4b7bd7d69973c8441c679f33",
+      "origin": "copied_identically",
+      "source_sha256": "79a4d60ffc6e3a8d0ccd6f85c6daabb2cabf97cf4b7bd7d69973c8441c679f33"
+    },
+    {
+      "path": "test_sanity.py",
+      "sha256": "3a1981a1275e22112df2459237ebfc0f5f85348ee250c9292b71425f5ce1fa24",
+      "origin": "copied_identically",
+      "source_sha256": "3a1981a1275e22112df2459237ebfc0f5f85348ee250c9292b71425f5ce1fa24"
+    },
+    {
+      "path": "test_training_smoke.py",
+      "sha256": "fb096b806ef545a4f58e5d09f42ac0cec2d32c813d6cfe8af4beb107ee46adcc",
+      "origin": "copied_identically",
+      "source_sha256": "fb096b806ef545a4f58e5d09f42ac0cec2d32c813d6cfe8af4beb107ee46adcc"
+    },
+    {
+      "path": "test_wipose_smoke.py",
+      "sha256": "605d309def302d20817d2a03ec335423cff1f6d6f9f92574ce241eb6c9df08b5",
+      "origin": "new_portable_file",
+      "source_sha256": null
+    },
+    {
+      "path": "train_mmfi.py",
+      "sha256": "7d7579d040233649aefd8bda2a86d118879256c789fd73789f633c5769e1bd3d",
+      "origin": "new_portable_file",
+      "source_sha256": null
+    },
+    {
+      "path": "train_wipose.py",
+      "sha256": "a452417c2b373e61eb797da4f9d7724aa7e71bce53870bce1a96fd2a78d1bbcd",
+      "origin": "new_portable_file",
+      "source_sha256": null
+    },
+    {
+      "path": "utils/__init__.py",
+      "sha256": "b6a45ee6764b40ed8f8be139fa410e6baa7988394aa3d6cacbd8ecaa93b604e6",
+      "origin": "copied_identically",
+      "source_sha256": "b6a45ee6764b40ed8f8be139fa410e6baa7988394aa3d6cacbd8ecaa93b604e6"
+    },
+    {
+      "path": "utils/eval.py",
+      "sha256": "f18610cacfaabe020b5bebef59d327c61eafc84f415c1b5c067ef0606097d1a4",
+      "origin": "copied_identically",
+      "source_sha256": "f18610cacfaabe020b5bebef59d327c61eafc84f415c1b5c067ef0606097d1a4"
+    },
+    {
+      "path": "utils/losses.py",
+      "sha256": "df2192170e3ed4d849d5072d53db4b1a3ca4c3a9058ea9b81ff791df6a423bab",
+      "origin": "copied_identically",
+      "source_sha256": "df2192170e3ed4d849d5072d53db4b1a3ca4c3a9058ea9b81ff791df6a423bab"
+    },
+    {
+      "path": "utils/noise.py",
+      "sha256": "b7c25fe9b46b200175836b9f1e03731816a408bc954fc5a264a58438b13b2738",
+      "origin": "copied_identically",
+      "source_sha256": "b7c25fe9b46b200175836b9f1e03731816a408bc954fc5a264a58438b13b2738"
+    },
+    {
+      "path": "validate_portable.py",
+      "sha256": "351a51c2a132977c11f85ea0ebe03c57bf3a7a1585d9fa0689336ceeaa012a1e",
+      "origin": "new_portable_file",
+      "source_sha256": null
+    },
+    {
+      "path": "verify_package.py",
+      "sha256": "d18a953106dca170ecf9a5876a689f0a3dfa47fc15bb4c1cfde4df1783996060",
+      "origin": "new_portable_file",
+      "source_sha256": null
+    },
+    {
+      "path": "wipose/__init__.py",
+      "sha256": "c350a74b11725b2f044667a84da021cf102ec467dec83698efa507acd6708088",
+      "origin": "copied_identically",
+      "source_sha256": "c350a74b11725b2f044667a84da021cf102ec467dec83698efa507acd6708088"
+    },
+    {
+      "path": "wipose/wipose_dataset.py",
+      "sha256": "868524ac7014342561a8553177082ca3a2185564bcbf577d5b5e58d684b0fced",
+      "origin": "adapted_in_portable_only",
+      "source_sha256": "65c9a89b3560a8ca291d2b96242ce5581ca5310e82a53641cc7ce545fdc153d5"
+    },
+    {
+      "path": ".gitattributes",
+      "sha256": "ed306eb17a52cd8afb1d5d82504c85517a67f1cc43708147a1a7df1fb202b464",
+      "origin": "new_repository_file",
+      "source_sha256": null
+    }
+  ],
+  "repository": "https://github.com/Lamchu1110/WiFi-based"
+}

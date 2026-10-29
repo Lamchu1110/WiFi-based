@@ -1,0 +1,22 @@
+__pycache__/
+*.pyc
+.venv/
+runs/
+runs_wipose/
+runs_smoke/
+logs/
+data/
+*.pt
+*.npz
+*.mat
+
+# Training artifacts, local environment and compiler caches
+*.pth
+*.ckpt
+*.npy
+*.h5
+*.hdf5
+*.zip
+torchinductor_*/
+.env
+.env.*

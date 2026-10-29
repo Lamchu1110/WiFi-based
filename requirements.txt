@@ -1,0 +1,7 @@
+# Install matching torch + torchvision first; see README.
+numpy
+scipy
+PyYAML
+scikit-learn
+opencv-python
+ultralytics-thop

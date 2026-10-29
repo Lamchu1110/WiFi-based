@@ -1,0 +1,25 @@
+"""Lightweight temporal convolutions preserving the input time axis."""
+import torch
+from torch import nn
+
+
+class MultiScaleDilatedTCN(nn.Module):
+    def __init__(self, channels, mid_channels=None):
+        super().__init__()
+        # 320 channels for MM-Fi / 160 for WiPose: about 0.25M extra
+        # parameters including the XYZ decoder, for either backbone.
+        mid_channels = mid_channels if mid_channels is not None else max(1, 40960 // channels)
+        self.branches = nn.ModuleList([
+            nn.Sequential(
+                nn.Conv1d(channels, channels, 3, padding=d, dilation=d,
+                          groups=channels, bias=False),
+                nn.Conv1d(channels, mid_channels, 1, bias=False),
+            ) for d in (1, 2, 4)
+        ])
+        self.fusion = nn.Sequential(
+            nn.BatchNorm1d(3 * mid_channels), nn.GELU(),
+            nn.Conv1d(3 * mid_channels, channels, 1),
+        )
+
+    def forward(self, x):
+        return x + self.fusion(torch.cat([branch(x) for branch in self.branches], dim=1))

@@ -1,0 +1,8 @@
+{
+  "isolated_extraction_imports": "PASS",
+  "source_checksum_verification": "PASS",
+  "mmfi_and_wipose_cli_help": "PASS",
+  "zip_crc": "PASS",
+  "no_dataset_or_checkpoints": "PASS",
+  "note": "Verified in a temporary extraction, independent from source repository."
+}
