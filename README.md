@@ -1,138 +1,112 @@
-# ST-DSKPose — training v2
+# ST-DSKPose — thử nghiệm WiPose: Baseline và TCN
 
-**Spatio-Temporal Dual Selective Kernel Network for WiFi-based Human Pose Estimation**
+Nhánh `experiment/wipose-baseline-tcn` chuẩn bị riêng cho việc train WiPose trên máy Windows có GPU. Nhánh này kế thừa `main` tại commit `3e7e2c8`.
 
-Phiên bản cải thiện độ tin cậy ngày 29/10/2026, kế thừa HPE-Li. Xem [nguồn tác giả](docs/UPSTREAM_README.md). Đây là implementation thực nghiệm; kiểm thử kỹ thuật PASS chưa chứng minh độ chính xác tốt hơn. **V2 thay kiến trúc temporal, loss mặc định và protocol chia tập: bắt đầu run mới, không dùng checkpoint v1 để resume v2.**
+Hai mô hình được train lần lượt từ đầu, cùng dữ liệu, seed, hàm loss, optimizer và cách chọn checkpoint:
 
-## Cài đặt
+- **Baseline:** backbone `HPEWiPoseModel` từ mã nguồn HPE-Li, đầu ra XY.
+- **TCN:** cùng backbone/decoder, giữ 5 mẫu thời gian CSI trước khối TCN đa tỉ lệ, đầu ra XY.
 
-Chạy từ thư mục gốc repository, Python 3.12 là phiên bản đã kiểm thử:
+WiPose công khai có 18 khớp **XY + confidence**. Thử nghiệm này đánh giá **CSI-TCN trong một frame**, chưa phải Full ST-HPE với XYZ và kinematic loss, và chưa dùng chuỗi pose giữa các file.
 
-```powershell
-git clone https://github.com/Lamchu1110/WiFi-based.git
-cd WiFi-based
-python -m venv .venv
-# PowerShell:
-.venv\Scripts\Activate.ps1
-# Linux/macOS: source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install torch
-python -m pip install -r requirements.txt
-# WiPose MAT v7.3/HDF5:
-python -m pip install -r requirements-wipose.txt
+## Tải nhánh về máy train
+
+Chạy trong CMD/Terminal tại nơi bạn muốn đặt code:
+
+```bat
+git clone --branch experiment/wipose-baseline-tcn --single-branch https://github.com/Lamchu1110/WiFi-based.git WiFi-based-wipose
+cd WiFi-based-wipose
+```
+
+Sử dụng môi trường Python đã kiểm tra nhận GPU. Máy bên Đài hiện đã báo PyTorch 2.7.0+cu118 và RTX 3060. Cài thêm phụ thuộc rồi kiểm tra lại:
+
+```bat
+python -m pip install -r requirements-wipose-trial.txt
+python -c "import torch; print(torch.__version__); print(torch.cuda.is_available()); print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'CUDA unavailable')"
 python verify_package.py
-python validate_portable.py
+python test_wipose_trial.py
 ```
 
-Cài build PyTorch phù hợp driver/GPU của máy mới nếu cần CUDA. Đã bỏ import torchvision thừa khỏi decoder; train và bộ test hiện không cần torchvision. Không kèm dataset, môi trường Python hoặc checkpoint thật.
+`test_wipose_trial.py` chạy kiểm thử CPU và dữ liệu tổng hợp, chưa cần dataset. Bằng chứng riêng của nhánh ở [validation/wipose_trial](validation/wipose_trial/README.md). Python 3.12 là phiên bản được dùng trên máy kiểm thử.
 
-## V2 đã thay đổi gì?
+## Chuẩn bị dữ liệu
 
-- **WiPose CSI-TCN giữ T=5** trước TCN, rồi mới pool về kích thước decoder. Không còn T=1 trước TCN ở chế độ này.
-- **Pose-TCN chạy theo chuỗi frame W thật**. Kiểm thử ở eval xác nhận thay frame lân cận làm thay đổi dự đoán của frame đang xét. Đây là mô hình window hai chiều, có dùng thông tin tương lai trong window; chưa phải mô hình causal/online.
-- Các kịch bản MM-Fi cùng dùng window, batch, stride và split. Có thêm các ablation XYZ để tách tác động TCN và kinematic loss.
-- XY MSE mặc định không dùng tọa độ Z làm confidence và không chia mean loss thêm 32 lần. WiPose confidence được dùng làm trọng số không âm và chuẩn hóa theo tổng trọng số.
-- Symmetry loss mặc định khớp **độ chênh lệch chiều dài trái/phải của GT**, tránh ép đối xứng tuyệt đối khi GT bất đối xứng. `--symmetry-mode prior` khôi phục prior đối xứng tuyệt đối.
-- Cache GT MM-Fi theo sequence; đọc thư mục hoặc ZIP, không còn tải lại toàn bộ GT mỗi frame. Đọc số frame từ dữ liệu, kiểm tra index thay vì giả định mọi action có đúng 297 frame.
-- Chia validation/test MM-Fi theo **sequence** mặc định; window không vượt sequence hoặc khoảng frame bị thiếu. PCK/PA-MPJPE xử lý torso/pose suy biến và thống kê số mẫu không dùng được.
-- Checkpoint atomic giữa epoch, lưu optimizer/scheduler/RNG/vị trí batch/best model; `--resume` kiểm tra cấu hình và fingerprint dữ liệu. Có khóa OS chống hai tiến trình ghi cùng run.
-- Log riêng từng thành phần loss, clipping gradient, tùy chọn deterministic và AMP. Mặc định FP32; AMP BF16 chỉ bật khi yêu cầu và GPU hỗ trợ.
+Giải nén `Wi-Pose.rar`, ví dụ:
 
-## Chạy MM-Fi
-
-Input một frame `[3,114,10]`; nhãn `[P,3]`, P=17, tọa độ mét. Cấu trúc: `E01/S01/A01/ground_truth.npy` và `wifi-csi/frame001.mat`. Giữ YAML protocol3/random_split; v2 tách heldout theo subject/action sequence để validation/test không chia lẫn frame của cùng sequence. Đây chưa phải một benchmark cross-subject mới được xác lập.
-
-```powershell
-python train_mmfi.py --dataset-root /path/to/MMFi_Dataset --scenario full --preflight-only
-python train_mmfi.py --dataset-root /path/to/MMFi_Dataset --scenario baseline
-python train_mmfi.py --dataset-root /path/to/MMFi_Dataset --scenario tcn
-python train_mmfi.py --dataset-root /path/to/MMFi_Dataset --scenario full
-# Hoặc 3 kịch bản trên tuần tự:
-python train_mmfi.py --dataset-zip /path/to/MMFi_Dataset.zip --scenario all
+```text
+D:\Datasets\Wi-Pose\
+  Train\
+    bend_001-frame001.mat
+    ...
+  Test\
+    bend_009-frame001.mat
+    ...
 ```
 
-Mặc định: 50 epochs, batch 32 **window**, W=8, stride=8, SGDM lr=0.001, momentum=0.9, gradient clip=1, seed=0. Cùng batch32/W8 tương đương 256 frame mỗi optimizer update ở mọi kịch bản MM-Fi. W=8 cho phép nhánh dilation4 nhìn được frame lân cận thật; với W<=4 các tap ngoài của nhánh này chỉ thấy padding. Window cuối không đủ W bị bỏ; metric tính trên các window đã chọn. Stride nhỏ hơn W làm lặp frame/đoạn chuyển động và được ghi vào contract dữ liệu; để so sánh hãy dùng cùng stride.
+Thay đường dẫn ví dụ bên dưới bằng thư mục thật trên máy của bạn. Loader hỗ trợ MAT thường và MATLAB 7.3/HDF5. Hai schema `CSI/SkeletonPoints` và `csi_serial/jointsVector` đều được hỗ trợ; vector phẳng có thứ tự không rõ ràng sẽ yêu cầu khai báo thay vì tự đoán.
 
-| Kịch bản | Output | TCN | Kinematic loss |
-|---|---|---|---|
-| baseline | XY | Tắt | Tắt |
-| tcn | XY | Bật | Tắt |
-| xyz | XYZ | Tắt | Tắt |
-| xyz_tcn | XYZ | Bật | Tắt |
-| xyz_kinematic | XYZ | Tắt | Bật |
-| full | XYZ | Bật | Bật |
+## Chạy theo thứ tự
 
-Để tách đóng góp trên cùng objective XYZ và cùng ngân sách:
+**1. Kiểm tra cấu trúc và một số mẫu dữ liệu:**
 
-```powershell
-python train_mmfi.py --dataset-root /path/to/MMFi_Dataset --scenario xyz_all --select-metric MPJPE_xyz_mm
+```bat
+python run_wipose_comparison.py --dataset-root "D:\Datasets\Wi-Pose" --mode preflight
 ```
 
-`xyz_all` chạy xyz/xyz_tcn/xyz_kinematic/full. `--temporal-axis auto` dùng pose-TCN khi W>1; chọn `--temporal-axis csi` nếu muốn nghiên cứu CSI trong frame. Tắt TCN và direct3D vẫn khớp backbone baseline ở eval khi dùng cùng trọng số. Không gọi đây là bản tái lập toàn bộ setting bài báo.
+**2. Chạy pilot trên tập nhỏ để kiểm tra GPU, forward/backward, đánh giá và checkpoint:**
 
-Tùy chọn legacy để nghiên cứu lại objective XY cũ:
-
-```powershell
-python train_mmfi.py --dataset-root /path/to/MMFi_Dataset --scenario baseline --window 1 --split-mode frame --legacy-objective
+```bat
+python run_wipose_comparison.py --dataset-root "D:\Datasets\Wi-Pose" --mode pilot
 ```
 
-Lệnh legacy chỉ giữ công thức loss XY cũ và kiểu chia frame; các sửa metric, engine và scheduler v2 vẫn áp dụng. Không so lẫn kết quả legacy/v1 với protocol v2 mà không ghi chú.
+Mặc định: 1 epoch, tối đa 256 mẫu train + 128 validation + 128 test, batch 64, FP32. Cả hai mô hình dùng đúng cùng các mẫu. PCK thấp hoặc bằng 0 ở lượt ngắn này không phải bằng chứng chất lượng cuối cùng.
 
-## Chạy WiPose
+**3. Train thử 3 epoch trên toàn bộ dữ liệu của protocol đã chọn:**
 
-MAT native theo cấu trúc `WiPose/Train/*.mat`, `WiPose/Test/*.mat`; loader giữ cách đổi trục CSI/mean/std và XY mm→m từ repo gốc. Cột thứ ba đang được xử lý là confidence. Thứ tự thời gian giữa file native chưa được xác minh, vì vậy không tự tạo window dựa trên filename.
-
-```powershell
-python train_wipose.py --dataset-root /path/to/WiPose --scenario baseline --preflight-only
-python train_wipose.py --dataset-root /path/to/WiPose --scenario baseline
-python train_wipose.py --dataset-root /path/to/WiPose --scenario tcn
+```bat
+python run_wipose_comparison.py --dataset-root "D:\Datasets\Wi-Pose" --mode train --epochs 3
 ```
 
-Native dùng frame và CSI-TCN, T=5. Không có velocity/gia tốc theo pose khi chưa có window được xác minh. Validation/test native vẫn chia theo file (seed41), vì chưa có thông tin sequence đáng tin cậy; chưa tuyên bố hết leakage giữa các file liên quan.
+Sau khi kiểm tra ổn định, bắt đầu một suite mới cho 50 epoch:
 
-Các kịch bản XYZ cần **nhãn XYZ thật**, đơn vị mét, đúng thứ tự joint18 và window liên tiếp trong từng sequence. Chuẩn bị `train.npz`, `val.npz`, `test.npz` theo [DATA_FORMAT.md](docs/DATA_FORMAT.md):
-
-```powershell
-python train_wipose.py --npz-dir /path/to/WiPose_XYZ_windows --scenario full --preflight-only
-python train_wipose.py --npz-dir /path/to/WiPose_XYZ_windows --scenario xyz_all --select-metric MPJPE_xyz_mm
+```bat
+python run_wipose_comparison.py --dataset-root "D:\Datasets\Wi-Pose" --mode train --epochs 50
 ```
 
-Không dùng confidence làm Z. Schema chỉ xác thực khai báo/shape, không xác thực bản chất annotation. MAT v7.3 và XYZ WiPose thật vẫn cần kiểm tra trên dữ liệu máy đích. NPZ được nạp vào RAM.
+Nếu thiếu VRAM, dùng cùng `--batch-size 32 --eval-batch-size 16` cho cả cặp mô hình trong một suite mới. Ghi rõ thay đổi batch so với cấu hình 64 của script WiPose nguồn.
 
-## Pilot, lưu và tiếp tục huấn luyện
+## Kết quả và tiếp tục khi bị gián đoạn
 
-```powershell
-# Thử 20 optimizer update trên dữ liệu thật, không train toàn bộ ngay:
-python train_mmfi.py --dataset-root /path/to/MMFi_Dataset --scenario full --max-steps 20
+Mỗi lệnh tạo một thư mục riêng trong `runs_wipose_trial/`:
 
-# Giữ cùng dataset/config/window/batch/seed/lr/epochs, bỏ giới hạn pilot:
-python train_mmfi.py --dataset-root /path/to/MMFi_Dataset --resume /path/to/run/full/last.pt
+```text
+train_<timestamp>/
+  suite_config.json, environment.json, suite.log, split.json, status.json
+  comparison.csv, comparison.json
+  baseline/
+    config.json, train.log, metrics.csv, best.pt, last.pt, test_metrics.json
+  tcn/
+    config.json, train.log, metrics.csv, best.pt, last.pt, test_metrics.json
 ```
 
-Resume suy ra kịch bản từ checkpoint, nhưng các tham số ảnh hưởng training phải khớp contract. Nếu run dùng flag khác mặc định, truyền lại các flag đó. `--checkpoint-every 200` lưu giữa epoch mỗi 200 update; Ctrl+C ở ranh giới bước sẽ lưu ngay, nếu đang chạy optimizer thì giữ checkpoint atomic gần nhất. Mất điện/kill có thể mất các bước sau lần lưu gần nhất. V1 checkpoint và dữ liệu/cấu hình khác sẽ bị từ chối.
+- `comparison.csv`: MPJPE, PA-MPJPE, PCK20/PCK50 và PCK của hai cổ tay, lấy từ **best validation checkpoint** của từng mô hình trên cùng tập test.
+- Với nhãn ảnh native: **MPJPE/PA-MPJPE là pixel**, không phải khoảng cách vật lý mm. Loader giữ phép nhân XY × 0.001 của upstream để train; metric đổi lại pixel.
+- PCK20/PCK50 là phần trăm khớp trong ngưỡng 0.2/0.5 chiều dài torso, không phải ngưỡng 20/50 pixel.
+- `comparison.json` ghi thêm chênh lệch TCN trừ Baseline và trạng thái complete/partial.
+- Preflight chỉ tạo log/metadata kiểm tra; không có metric train/test hay checkpoint model.
 
-Đã kiểm thử resume giữa epoch cho trọng số, CSV và test metric trùng khít với run liên tục trên CPU. Không bảo đảm bit-for-bit giữa các GPU, phiên bản thư viện hoặc precision khác. Fingerprint MM-Fi dùng nhãn, inventory/CRC ZIP hoặc metadata file thư mục; không phải SHA toàn bộ CSI đã giải nén. Không chạy hai tiến trình cùng output run.
+Tiếp tục đúng suite đã chạy, thay đường dẫn bằng thư mục thực tế:
 
-FP32 là mặc định. Nếu GPU hỗ trợ, có thể pilot `--amp --amp-dtype bfloat16`; loss vẫn tính FP32. BF16 có thể được mô phỏng trên một số GPU, vì vậy không suy ra tốc độ tăng từ việc chạy được. FP16 trên GPU nguồn từng tạo NaN ở convolution trong test nên không dùng làm mặc định. Gradient/loss/parameter không hữu hạn sẽ dừng và giữ checkpoint trước đó. Không tự giảm batch hoặc đổi precision giữa run. Batch32/W8 có thể cần nhiều VRAM; pilot trước, giảm batch khi thiếu VRAM và áp dụng cùng setting cho ablation tương ứng.
+```bat
+python run_wipose_comparison.py --resume-suite "D:\WiFi-based-wipose\runs_wipose_trial\train_TIMESTAMP"
+```
 
-## Metric và output
+Lệnh tự đọc cấu hình cũ, giữ kết quả mô hình đã hoàn thành và tiếp tục mô hình còn lại. Chỉ có thể thêm `--device` khi cần đổi thiết bị. Đổi epochs, batch, objective hoặc dữ liệu phải bắt đầu suite mới. Không resume checkpoint main/v2 cũ vào nhánh này.
 
-`runs/<timestamp>/<scenario>/` cho MM-Fi, `runs_wipose/...` cho WiPose:
+## Phạm vi so sánh
 
-- `config.json`, `split.json`: protocol, fingerprint, cấu hình và số mẫu/window.
-- `train.log`, `metrics.csv`: loss thành phần, validation metric theo epoch và tiến độ.
-- `last.pt`: checkpoint resume; `best.pt`: trọng số tốt nhất theo validation.
-- `test_metrics.json`: test sau khi train xong, từ best validation; không dùng test để chọn checkpoint.
-- `status.json`: running/interrupted/failed/complete hoặc preflight_pass.
+Recipe mặc định theo `att_wipose.py`: AdamW lr=0.001, weight_decay=0.01, batch=64, loss `MSE(conf*pred, conf*target)/32`, chọn best theo PCK20. Dùng FP32 và tắt clipping để giữ gần recipe nguồn. Có `--objective normalized` nếu muốn so cả hai mô hình bằng confidence-weighted MSE chuẩn hóa; đây là thí nghiệm khác.
 
-Mặc định chọn best theo MPJPE XY nhỏ nhất. Dùng `--select-metric MPJPE_xyz_mm` cho controlled XYZ; nếu chọn PCK phải thêm `--select-mode max`. PCK20/50 là phần trăm joint dưới ngưỡng 0.2/0.5 lần torso như repo, không phải mm. MPJPE/PA-MPJPE XY và XYZ được ghi riêng. Confidence=0 bị loại khỏi metric XY. Torso không hợp lệ/GT suy biến được thống kê, các metric không tính được ghi null.
+Đây là **so sánh có kiểm soát với backbone từ repository**, không tuyên bố đã tái lập chính xác bảng kết quả ECCV. Chia Test thành validation/test 50/50 theo seed 41 như script nguồn; sắp xếp filename ổn định; metric được tính lại mỗi epoch và có kiểm tra visibility/pose suy biến. Việc chia theo file chưa bảo đảm tách sequence/subject. TCN đồng thời thay cách pooling để giữ T=5, nên kết quả là đóng góp của cả thay đổi này và khối TCN.
 
-`velocity_*_mm_per_frame`: sai số vector chênh lệch hai pose; `acceleration_*_mm_per_frame2`: sai số chênh lệch bậc2, chỉ có khi W>=3. Đây là proxy về độ ổn định chuyển động, không tự chứng minh mọi loại jitter đã giảm. Không nối frame qua batch/sequence, không quy đổi thành mm/s khi chưa có dt.
-
-## Kiểm chứng và giới hạn
-
-`validate_portable.py` chạy sanity, train/eval/checkpoint MM-Fi/WiPose tổng hợp và `test_reliability.py` (13 regression test). `test_cuda_pilot.py` kiểm tra riêng hai update BF16 và resume trên CUDA nếu có hỗ trợ. `validation/` giữ bằng chứng; metric ngẫu nhiên không phải kết quả nghiên cứu. `MANIFEST.json` và `verify_package.py` kiểm tra source đã chuyển đủ.
-
-Params không tăng thêm so với ST-HPE v1: MM-Fi full 1.308899M, WiPose full 6.424934M (gồm module gốc đăng ký nhưng không gọi). WiPose vẫn chưa đạt mục tiêu 2.5M. CSI-TCN WiPose giữ nhiều vị trí nên FLOPs cao hơn v1; THOP vẫn là phép đo một phần toán tử. Pose-TCN cần profile theo window, không lấy FLOPs của frame chia tùy ý thành FPS.
-
-Chưa tinh chỉnh siêu tham số hay chạy nhiều seed trên dữ liệu thật, chưa bảo đảm mô hình v2 tốt hơn baseline. Hệ số loss, lr, clipping và W là điểm khởi đầu; hãy chọn bằng validation và giữ test cuối cùng. Ghi riêng kết quả từng seed. Xem [V2_CHANGELOG.md](docs/V2_CHANGELOG.md) để biết thay đổi và vấn đề phát hiện trong kiểm thử. Tài liệu lịch sử v1 được giữ để truy vết, không dùng thay hướng dẫn v2 này.
+Xem [chi tiết recipe và những khác biệt](docs/WIPOSE_TRIAL.md), [nguồn tác giả](docs/UPSTREAM_README.md), và [hướng dẫn v2 chung](docs/README_V2.md). Các hướng dẫn chung v2 không thay thế đơn vị và recipe riêng của nhánh thử WiPose này.

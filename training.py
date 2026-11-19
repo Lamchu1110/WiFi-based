@@ -41,9 +41,9 @@ def pose_objective(pred,gt,target_format,legacy=False):
     return torch.nn.functional.mse_loss(pred,target)
 
 
-def evaluate(model,dataset,device,name,target_format,batch_size):
+def evaluate(model,dataset,device,name,target_format,batch_size,coordinate_unit='m'):
     model.eval()
-    metrics = PoseMetrics(name,model.direct_3d)
+    metrics = PoseMetrics(name,model.direct_3d,coordinate_unit)
     generator = torch.Generator().manual_seed(123456)
     loader = DataLoader(dataset,batch_size=batch_size,shuffle=False,generator=generator)
     with torch.inference_mode():
@@ -66,6 +66,11 @@ def seed_all(seed,deterministic=False):
 
 
 def fit(args,name,scenario,bundle,out):
+    optimizer_name = getattr(args,'optimizer','sgd')
+    schedule_name = getattr(args,'schedule','v2')
+    keep_last = getattr(args,'keep_last_batch',False)
+    if getattr(args,'select_metric',None) is None:
+        args.select_metric = 'MPJPE_xy_px' if bundle.coordinate_unit == 'scaled_pixel' else 'MPJPE_xy_mm'
     use_tcn,direct_3d,use_kinematic = SCENARIOS[scenario]
     if direct_3d and bundle.target_format != 'xyz':
         raise ValueError('Direct 3D needs verified XYZ labels; confidence is not Z')
@@ -81,6 +86,10 @@ def fit(args,name,scenario,bundle,out):
     if use_tcn and temporal_axis=='pose' and bundle.window < 2:
         raise ValueError('Pose TCN needs windows; native WiPose can use --temporal-axis csi')
     device = torch.device(args.device)
+    if device.type == 'cuda' and not torch.cuda.is_available():
+        raise ValueError('CUDA is unavailable in this Python environment; install a CUDA PyTorch build or use --device cpu')
+    if keep_last and len(bundle.train) % args.batch_size == 1:
+        raise ValueError('Last training batch would have one sample; change batch size or disable --keep-last-batch for BatchNorm')
     if args.amp and device.type != 'cuda':
         raise ValueError('--amp currently supports CUDA only')
     amp_dtype = torch.bfloat16 if args.amp_dtype == 'bfloat16' else torch.float16
@@ -97,6 +106,8 @@ def fit(args,name,scenario,bundle,out):
         'warmup_epochs':args.warmup_epochs,'lambda_bone':args.lambda_bone,'lambda_smooth':args.lambda_smooth,
         'lambda_sym':args.lambda_sym,'symmetry_mode':args.symmetry_mode,'grad_clip':args.grad_clip,
         'amp':args.amp,'amp_dtype':args.amp_dtype,'deterministic':args.deterministic,'selection':args.select_metric,'selection_mode':args.select_mode,
+        'optimizer':optimizer_name,'schedule':schedule_name,'keep_last_batch':keep_last,
+        'coordinate_unit':bundle.coordinate_unit,
     }
     if args.resume:
         checkpoint = torch.load(args.resume,map_location='cpu',weights_only=True)
@@ -124,11 +135,22 @@ def fit(args,name,scenario,bundle,out):
     model = STHPE(name,use_tcn=use_tcn,direct_3d=direct_3d,temporal_axis=temporal_axis).to(device)
     criterion = KinematicPoseLoss(name,args.lambda_bone,args.lambda_smooth,args.lambda_sym,
                                   args.warmup_epochs,args.symmetry_mode).to(device)
-    optimizer = torch.optim.SGD(model.parameters(),lr=args.lr,momentum=args.momentum,weight_decay=args.weight_decay)
+    if optimizer_name == 'adamw':
+        optimizer = torch.optim.AdamW(model.parameters(),lr=args.lr,weight_decay=args.weight_decay)
+    elif optimizer_name == 'sgd':
+        optimizer = torch.optim.SGD(model.parameters(),lr=args.lr,momentum=args.momentum,weight_decay=args.weight_decay)
+    else:
+        raise ValueError(f'Unsupported optimizer: {optimizer_name}')
     # Versioned schedule: fixed 20-epoch plateau (or total epochs if shorter), then linear to 1%.
     plateau = min(20,args.epochs)
-    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer,lambda epoch: 1.0 if epoch < plateau else
-                                                 max(0.01,1-(epoch-plateau+1)*0.99/max(1,args.epochs-plateau)))
+    if schedule_name == 'upstream_wipose':
+        # att_wipose.py: fixed 20 epochs, decay over 31; clamp avoids negative LR beyond epoch 50.
+        lr_scale = lambda epoch: max(0.0,1.0-max(0,epoch+1-20)/31.0)
+    elif schedule_name == 'v2':
+        lr_scale = lambda epoch: 1.0 if epoch < plateau else max(0.01,1-(epoch-plateau+1)*0.99/max(1,args.epochs-plateau))
+    else:
+        raise ValueError(f'Unsupported schedule: {schedule_name}')
+    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer,lr_scale)
     scaler = torch.amp.GradScaler('cuda',enabled=args.amp and amp_dtype == torch.float16)
     cursor = {'epoch':0,'next_batch':0,'global_step':0,'loss_sum':0.0,'samples':0,
               'components':{},'best_score':None,'best_epoch':None}
@@ -177,12 +199,12 @@ def fit(args,name,scenario,bundle,out):
             epoch = cursor['epoch']
             model.train()
             permutation = torch.randperm(len(bundle.train),generator=torch.Generator().manual_seed(args.seed+epoch)).tolist()
-            batch_count = len(permutation)//args.batch_size
+            batch_count = math.ceil(len(permutation)/args.batch_size) if keep_last else len(permutation)//args.batch_size
             if cursor['next_batch'] > batch_count:
                 raise ValueError('Invalid checkpoint cursor')
             remaining = permutation[cursor['next_batch']*args.batch_size:batch_count*args.batch_size]
             generator = torch.Generator().manual_seed(args.seed+epoch+100000)
-            loader = DataLoader(bundle.train,batch_size=args.batch_size,sampler=remaining,drop_last=True,
+            loader = DataLoader(bundle.train,batch_size=args.batch_size,sampler=remaining,drop_last=not keep_last,
                                 generator=generator,pin_memory=device.type=='cuda')
             for batch in loader:
                 in_step = True
@@ -224,7 +246,7 @@ def fit(args,name,scenario,bundle,out):
                     save()
                     print('Stopped at --max-steps; resume from last.pt with the same contract',flush=True)
                     return 'interrupted'
-            metrics = evaluate(model,bundle.val,device,name,bundle.target_format,args.eval_batch_size)
+            metrics = evaluate(model,bundle.val,device,name,bundle.target_format,args.eval_batch_size,bundle.coordinate_unit)
             result = {'epoch':epoch+1,'global_step':cursor['global_step'],'lr':optimizer.param_groups[0]['lr'],
                       'train_loss':cursor['loss_sum']/cursor['samples'],
                       **{key:value/cursor['samples'] for key,value in cursor['components'].items()},**metrics}
@@ -261,7 +283,7 @@ def fit(args,name,scenario,bundle,out):
     model.load_state_dict(best_model)
     atomic_save(out/'best.pt',{'format_version':2,'contract':contract,'model':best_model,
                              'best_epoch':cursor['best_epoch'],'best_score':cursor['best_score']})
-    metrics = evaluate(model,bundle.test,device,name,bundle.target_format,args.eval_batch_size)
+    metrics = evaluate(model,bundle.test,device,name,bundle.target_format,args.eval_batch_size,bundle.coordinate_unit)
     atomic_json(out/'test_metrics.json',{'best_epoch':cursor['best_epoch'],**metrics})
     print('TEST '+json.dumps(metrics,allow_nan=False),flush=True)
     return 'complete'

@@ -1,5 +1,16 @@
 # Nhật ký sửa lỗi và kiểm thử
 
+## 2026-11-19 — Nhánh thử WiPose Baseline/CSI-TCN
+
+- Thêm `run_wipose_comparison.py`: preflight, pilot nhỏ, train hai mô hình cùng recipe, bảng CSV/JSON và resume suite. Lỗi runtime được lưu cùng log của suite và model.
+- Đối chiếu `att_wipose.py`: dùng AdamW lr=0.001, batch=64, weight_decay=0.01 và objective upstream cho cả cặp. Không áp recipe SGDM của MM-Fi sang WiPose. Chặn learning rate âm; full run mặc định 50 epoch, khác hằng số 60 epoch của snapshot nguồn.
+- Đọc MAT v7.3 thật từ Wi-Pose.rar: xác nhận `CSI` shape `[5,30,3,3]`, `SkeletonPoints` phẳng gồm 18 X, 18 Y, 18 confidence. Loader hỗ trợ thêm schema công khai, từ chối vector không rõ thứ tự và lỗi đảo trục, báo tên file khi lỗi.
+- Sửa nhãn đơn vị metric của native WiPose: XY ảnh sau khi nhân 0.001 vẫn là tọa độ ảnh; xuất MPJPE/PA-MPJPE theo pixel, không gọi là mm. Confidence không được dùng làm Z.
+- Fixture của test loader ban đầu tạo sai số phần tử trước reshape; đã sửa theo tích `5*30*3*3`. Bài test đọc MAT v5/v7.3 và đối chiếu normalization đã PASS.
+- Pilot dữ liệu thật đã hoàn thành trên GTX 1650 Ti 4 GB: 256 train / 128 val / 128 test, batch 64, 1 epoch cho Baseline và TCN. Đây chỉ là 4 update mỗi model, không chứng minh cải thiện độ chính xác.
+- Kiểm thử hồi quy `test_reliability.py`, `test_training_smoke.py`, `test_wipose_smoke.py` đã PASS. Bằng chứng, môi trường và kết quả tương thích bổ sung ở [validation/wipose_trial](../validation/wipose_trial/README.md).
+- Không đưa dataset, checkpoint, môi trường Python hay log run cá nhân lên GitHub. Các log kiểm thử đã chọn trong `validation/` là bằng chứng kiểm tra kỹ thuật.
+
 ## 2026-10-29 — Training v2
 
 - Sửa WiPose CSI-TCN còn T=1; nay giữ T=5. Thêm pose-TCN theo window thật, mặc định W=8 cho MM-Fi.

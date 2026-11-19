@@ -3,7 +3,10 @@ import numpy as np
 
 
 class PoseMetrics:
-    def __init__(self, dataset, xyz=False):
+    def __init__(self, dataset, xyz=False, coordinate_unit='m'):
+        if coordinate_unit not in ('m','scaled_pixel'):
+            raise ValueError('Metrics expect metres or pixels scaled by 0.001')
+        self.coordinate_unit = coordinate_unit
         self.xyz = xyz
         self.joints = 17 if dataset == "mmfi" else 18
         self.torso = (1, 11) if dataset == "mmfi" else (5, 8)
@@ -102,4 +105,6 @@ class PoseMetrics:
                 result[f"{label}_PCK{tag}"] = float(hits[index]/self.pck_counts[index]*100) if self.pck_counts[index] else None
         result["invalid_torso_frames"] = self.invalid_torso_frames
         result["degenerate_gt_frames"] = self.degenerate_gt_frames
+        if self.coordinate_unit == 'scaled_pixel':
+            result = {key.replace('_mm','_px'):value for key,value in result.items()}
         return result

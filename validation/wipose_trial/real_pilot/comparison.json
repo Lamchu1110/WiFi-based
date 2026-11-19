@@ -1,0 +1,51 @@
+{
+  "status": "complete",
+  "rows": [
+    {
+      "scenario": "baseline",
+      "best_epoch": 1,
+      "epochs": 1,
+      "coordinate_unit": "px",
+      "MPJPE": 419.16749078274177,
+      "PA_MPJPE": 116.7175573139835,
+      "PCK20": 0.0,
+      "PCK50": 0.08680555555555555,
+      "R.Wrist_PCK20": 0.0,
+      "L.Wrist_PCK20": 0.0,
+      "R.Wrist_PCK50": 0.0,
+      "L.Wrist_PCK50": 0.0,
+      "train_samples": 256,
+      "val_samples": 128,
+      "test_samples": 128
+    },
+    {
+      "scenario": "tcn",
+      "best_epoch": 1,
+      "epochs": 1,
+      "coordinate_unit": "px",
+      "MPJPE": 418.9602435345228,
+      "PA_MPJPE": 116.5151961841002,
+      "PCK20": 0.0,
+      "PCK50": 0.08680555555555555,
+      "R.Wrist_PCK20": 0.0,
+      "L.Wrist_PCK20": 0.0,
+      "R.Wrist_PCK50": 0.0,
+      "L.Wrist_PCK50": 0.0,
+      "train_samples": 256,
+      "val_samples": 128,
+      "test_samples": 128
+    }
+  ],
+  "comparison": "HPEWiPoseModel backbone vs CSI-TCN with preserved T=5; both XY, same data/objective/recipe",
+  "interpretation": "PCK is percent at 0.2/0.5 torso length; MPJPE units are declared. Pilot subset metrics are not benchmark results.",
+  "tcn_minus_baseline": {
+    "MPJPE": -0.20724724821894824,
+    "PA_MPJPE": -0.20236112988330035,
+    "PCK20": 0.0,
+    "PCK50": 0.0,
+    "R.Wrist_PCK20": 0.0,
+    "L.Wrist_PCK20": 0.0,
+    "R.Wrist_PCK50": 0.0,
+    "L.Wrist_PCK50": 0.0
+  }
+}

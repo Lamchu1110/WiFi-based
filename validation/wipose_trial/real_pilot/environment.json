@@ -1,0 +1,8 @@
+{
+  "python": "3.12.8 (tags/v3.12.8:2dc476b, Dec  3 2024, 19:30:04) [MSC v.1942 64 bit (AMD64)]",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "torch": "2.13.0+cu126",
+  "cuda_runtime": "12.6",
+  "cuda_available": true,
+  "gpu": "NVIDIA GeForce GTX 1650 Ti"
+}

@@ -1,5 +1,7 @@
 # Bằng chứng kiểm thử gói portable
 
+**Cập nhật nhánh thử WiPose ngày 19/11/2026:** đã đọc MAT v7.3 thật và hoàn thành pilot nhỏ cho Baseline/CSI-TCN. Xem [bằng chứng riêng của nhánh](wipose_trial/README.md). Các kết quả và giới hạn bên dưới là lịch sử kiểm thử v2 ngày 29/10/2026, không phải trạng thái mới nhất của nhánh.
+
 **V2 ngày 29/10/2026:** summary/log đã được cập nhật cho engine mới. Xem `test_reliability.py.log` (13 test), `cuda_pilot.json` (BF16/resume trên GPU) và `mmfi_preflight.json` (chỉ kiểm tra dữ liệu thật, không train). Bằng chứng archive được cập nhật theo gói v2.
 
 Kiểm thử ngày 29/10/2026 bằng Python3.12 trên CPU, cwd là chính thư mục ST-HPE-Portable, không import repo nguồn.

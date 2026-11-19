@@ -1,5 +1,5 @@
 {
-  "release": "ST-DSKPose-v2-2026-10-29",
+  "release": "ST-DSKPose-WiPose-Trial-2026-11-19",
   "source_project": "HPE-Li-ECCV2024",
   "data_included": false,
   "trained_weights_included": false,
@@ -13,11 +13,12 @@
     },
     {
       "path": ".gitignore",
-      "sha256": "333ad62bac851d4ac8cd24a697aad8afdd23c7d88a2ab02fc6d7b433a29d8d70",
-      "origin": "v2_reliability_upgrade",
+      "sha256": "68fe16fd6a1de37869b3ecd5eb3bf8a245f1b5dfb734c8f41ca2d3b0179d3b02",
+      "origin": "wipose_trial_update",
       "source_sha256": "cd83322170e507f1bb8e3e238643a0481b23f09f6aaf8eb31592c7168bd1b6f2",
       "portable_snapshot_sha256": "06aaa3d94ee8b349c925e0536fb04a2a3f2f44b4f77c591d92268c1af4714faf",
-      "v1_sha256": "3892373b4a2af3fa397c0ca1de4c5b67390a974d5edacc76984f8a3a5d91ee75"
+      "v1_sha256": "3892373b4a2af3fa397c0ca1de4c5b67390a974d5edacc76984f8a3a5d91ee75",
+      "v2_base_sha256": "333ad62bac851d4ac8cd24a697aad8afdd23c7d88a2ab02fc6d7b433a29d8d70"
     },
     {
       "path": "dataset_lib/__init__.py",
@@ -45,9 +46,10 @@
     },
     {
       "path": "dataset_lib/training_data.py",
-      "origin": "new_v2_file",
+      "origin": "wipose_trial_update",
       "source_sha256": null,
-      "sha256": "014856cd9abcd2c58b5b17db396b0d2beef1f08f5bf938059c014109b8d6e4c7"
+      "sha256": "bfd2bb86345b8425069edc5ed637c8be68223358508ff11dd5049fea08d9cf6d",
+      "v2_base_sha256": "014856cd9abcd2c58b5b17db396b0d2beef1f08f5bf938059c014109b8d6e4c7"
     },
     {
       "path": "docs/DATA_FORMAT.md",
@@ -58,10 +60,11 @@
     },
     {
       "path": "docs/ERROR_LOG.md",
-      "sha256": "4f8f1058c830a9a5fa8e8275597aa6691c95d77d705ced85c559620be54066d6",
-      "origin": "v2_reliability_upgrade",
+      "sha256": "c786e20147693b9e4fe1eba83f3bd8c93418970c003789c9d8424c769c050781",
+      "origin": "wipose_trial_update",
       "source_sha256": null,
-      "v1_sha256": "58868ded09e0766e85a6144c0211265a41d894a68d379cdc12dd8d81150fe888"
+      "v1_sha256": "58868ded09e0766e85a6144c0211265a41d894a68d379cdc12dd8d81150fe888",
+      "v2_base_sha256": "4f8f1058c830a9a5fa8e8275597aa6691c95d77d705ced85c559620be54066d6"
     },
     {
       "path": "docs/EXPERIMENTS.md",
@@ -154,11 +157,12 @@
     },
     {
       "path": "README.md",
-      "sha256": "13bd2176b3b6bcea7ddde0025d37ead0fb011bb3f5853dbb034e86b0c496ca29",
-      "origin": "v2_reliability_upgrade",
+      "sha256": "7b8ba8397a4465c7650803abd208365b517212c68b58ce9a6bc02194eafc7caa",
+      "origin": "wipose_trial_update",
       "source_sha256": "f3c15ed2c1c0defdbcaf41bb1487e1c6da24417a43c83ce80c132a936fa01085",
       "portable_snapshot_sha256": "1138f21984c4c74a9f305d7255ce7a08e67db4971c72856a2321303de0c15a16",
-      "v1_sha256": "6ec2ba917ddb3bb18391f539bccf1a94e4a576d17b4f2e975bc95fc11139071e"
+      "v1_sha256": "6ec2ba917ddb3bb18391f539bccf1a94e4a576d17b4f2e975bc95fc11139071e",
+      "v2_base_sha256": "13bd2176b3b6bcea7ddde0025d37ead0fb011bb3f5853dbb034e86b0c496ca29"
     },
     {
       "path": "requirements-wipose.txt",
@@ -226,15 +230,17 @@
     },
     {
       "path": "training.py",
-      "origin": "new_v2_file",
+      "origin": "wipose_trial_update",
       "source_sha256": null,
-      "sha256": "408cde164287e2dfaac0e8ab828ce74461c4a2a96c2e5a7a316b62d11e9d6558"
+      "sha256": "d50388a53bc2477995cb575e4f150b5b992dd3101b50e5ce95b5e3bb2563ea45",
+      "v2_base_sha256": "408cde164287e2dfaac0e8ab828ce74461c4a2a96c2e5a7a316b62d11e9d6558"
     },
     {
       "path": "training_cli.py",
-      "origin": "new_v2_file",
+      "origin": "wipose_trial_update",
       "source_sha256": null,
-      "sha256": "477b0975dda17d406bf2abf709da9a59d3f36f3f103a46af69e1343440594d18"
+      "sha256": "2781b53d56fdd686ed1aa1c808bd530a33e123aeec51fe8b89051980dc5f7a91",
+      "v2_base_sha256": "477b0975dda17d406bf2abf709da9a59d3f36f3f103a46af69e1343440594d18"
     },
     {
       "path": "utils/__init__.py",
@@ -257,9 +263,10 @@
     },
     {
       "path": "utils/metrics.py",
-      "origin": "new_v2_file",
+      "origin": "wipose_trial_update",
       "source_sha256": null,
-      "sha256": "5b21ccebdba34e96bb623645067aca6a0267160b31b75897a517395e4abaaf4b"
+      "sha256": "b52698c6d3a5cb4319419c8b5a0c04533e5623ce5b0f4ec8c7a5c82a4507cb3a",
+      "v2_base_sha256": "5b21ccebdba34e96bb623645067aca6a0267160b31b75897a517395e4abaaf4b"
     },
     {
       "path": "utils/noise.py",
@@ -294,12 +301,39 @@
     },
     {
       "path": "wipose/wipose_dataset.py",
-      "sha256": "868524ac7014342561a8553177082ca3a2185564bcbf577d5b5e58d684b0fced",
-      "origin": "adapted_in_portable_only",
-      "source_sha256": "65c9a89b3560a8ca291d2b96242ce5581ca5310e82a53641cc7ce545fdc153d5"
+      "sha256": "67b94d929ac0513ffe91902cc5a0b221f2b65e4c038bbf96df012a707290f8c3",
+      "origin": "wipose_trial_update",
+      "source_sha256": "65c9a89b3560a8ca291d2b96242ce5581ca5310e82a53641cc7ce545fdc153d5",
+      "v2_base_sha256": "868524ac7014342561a8553177082ca3a2185564bcbf577d5b5e58d684b0fced"
+    },
+    {
+      "path": "docs/WIPOSE_TRIAL.md",
+      "origin": "wipose_trial_added",
+      "source_sha256": null,
+      "sha256": "25fab8eb1440dc1db00ee854362f97ff9ed6559a2a60e1e4d7af8b44a026c9a9"
+    },
+    {
+      "path": "requirements-wipose-trial.txt",
+      "origin": "wipose_trial_added",
+      "source_sha256": null,
+      "sha256": "f6634eda7dd008fc6d291c3d2a73d812d2a27f6aaccddf286228c74aa81d81cd"
+    },
+    {
+      "path": "run_wipose_comparison.py",
+      "origin": "wipose_trial_added",
+      "source_sha256": null,
+      "sha256": "9bf84a9511d62342d9981d6231c3d4a5ebd0866162cd35efbdd969aec16657fd"
+    },
+    {
+      "path": "test_wipose_trial.py",
+      "origin": "wipose_trial_added",
+      "source_sha256": null,
+      "sha256": "14695b6daaf8c0d3a8c55dc46e92c4312f5fb0776b863763bf8179147903f925"
     }
   ],
   "repository": "https://github.com/Lamchu1110/WiFi-based",
   "architecture_version": 2,
-  "checkpoint_format_version": 2
+  "checkpoint_format_version": 2,
+  "branch": "experiment/wipose-baseline-tcn",
+  "base_commit": "3e7e2c88baccec667851816b4a388d85677472b1"
 }

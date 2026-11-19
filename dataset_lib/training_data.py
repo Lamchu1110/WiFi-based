@@ -35,6 +35,7 @@ class Bundle:
     fingerprint: str
     split: dict
     window: int
+    coordinate_unit: str = 'm'
 
 
 class MMFiStore:
@@ -220,10 +221,14 @@ def wipose_bundle(args,require_xyz=False):
     from sklearn.model_selection import train_test_split
     if not args.dataset_root:
         raise ValueError('Provide --dataset-root or --npz-dir')
-    training,heldout = WiPoseDataset(args.dataset_root,'Train'),WiPoseDataset(args.dataset_root,'Test')
+    vector_layout = getattr(args,'joint_vector_layout',None)
+    training,heldout = WiPoseDataset(args.dataset_root,'Train',vector_layout),WiPoseDataset(args.dataset_root,'Test',vector_layout)
     val_ids,test_ids = train_test_split(np.arange(len(heldout)),test_size=0.5,random_state=41)
     split = {'mode':'native_file_no_temporal_order','train':training.file_list,
              'val':[heldout.file_list[i] for i in val_ids],'test':[heldout.file_list[i] for i in test_ids]}
-    inventory = [(splitname,p.name,p.stat().st_size,p.stat().st_mtime_ns)
-                 for splitname in ('Train','Test') for p in sorted((args.dataset_root/splitname).glob('*.mat'))]
-    return Bundle(training,Subset(heldout,val_ids),Subset(heldout,test_ids),'xy_conf',digest([inventory,split]),split,1)
+    inventory = [(dataset.directory.name,name,(dataset.directory/name).stat().st_size,(dataset.directory/name).stat().st_mtime_ns)
+                 for dataset in (training,heldout) for name in dataset.file_list]
+    # Image annotations are pixels; the 0.001 loader scale does not create physical metres.
+    unit = 'scaled_pixel' if getattr(args,'wipose_coordinate_unit','pixel') == 'pixel' else 'm'
+    return Bundle(training,Subset(heldout,val_ids),Subset(heldout,test_ids),'xy_conf',
+                  digest([inventory,split,vector_layout,unit,'wipose_schema_v3']),split,1,unit)

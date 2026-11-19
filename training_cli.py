@@ -32,6 +32,11 @@ def main(dataset):
     parser.add_argument('--lr',type=float,default=0.001)
     parser.add_argument('--momentum',type=float,default=0.9)
     parser.add_argument('--weight-decay',type=float,default=0.0)
+    parser.add_argument('--optimizer',choices=['sgd','adamw'],default='sgd')
+    parser.add_argument('--schedule',choices=['v2','upstream_wipose'],default='v2')
+    parser.add_argument('--keep-last-batch',action='store_true')
+    parser.add_argument('--joint-vector-layout',choices=['coordinate-major','joint-major'])
+    parser.add_argument('--wipose-coordinate-unit',choices=['pixel','mm'],default='pixel')
     parser.add_argument('--seed',type=int,default=0)
     parser.add_argument('--window',type=int,default=8)
     parser.add_argument('--window-stride',type=int,default=0,help='0 means nonoverlapping stride=window')
@@ -48,7 +53,7 @@ def main(dataset):
     parser.add_argument('--amp-dtype',choices=['bfloat16','float16'],default='bfloat16')
     parser.add_argument('--deterministic',action='store_true')
     parser.add_argument('--device',default='cuda' if torch.cuda.is_available() else 'cpu')
-    parser.add_argument('--select-metric',default='MPJPE_xy_mm')
+    parser.add_argument('--select-metric',default=None,help='Default: MPJPE_xy_px for native WiPose, MPJPE_xy_mm for metric XYZ data')
     parser.add_argument('--select-mode',choices=['min','max'],default='min')
     parser.add_argument('--checkpoint-every',type=int,default=200)
     parser.add_argument('--log-every',type=int,default=100)
@@ -82,7 +87,7 @@ def main(dataset):
         suite = args.resume.resolve().parent.parent
     else:
         scenario = args.scenario or ('all' if dataset=='mmfi' else 'baseline')
-        scenarios = ['baseline','tcn','full'] if scenario=='all' else ['xyz','xyz_tcn','xyz_kinematic','full'] if scenario=='xyz_all' else [scenario]
+        scenarios = (['baseline','tcn'] if dataset=='wipose' and not args.npz_dir else ['baseline','tcn','full']) if scenario=='all' else ['xyz','xyz_tcn','xyz_kinematic','full'] if scenario=='xyz_all' else [scenario]
         stamp = datetime.now(timezone(timedelta(hours=7))).strftime('%Y%m%d_%H%M%S_%f')
         suite = args.output/stamp
     if args.legacy_objective and any(SCENARIOS[s][1] for s in scenarios):

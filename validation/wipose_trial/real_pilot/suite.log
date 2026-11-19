@@ -1,0 +1,25 @@
+Suite: <REPOSITORY>\runs_wipose_trial\real_data_validation\pilot_20261119_141547_515630
+{"python": "3.12.8 (tags/v3.12.8:2dc476b, Dec  3 2024, 19:30:04) [MSC v.1942 64 bit (AMD64)]", "platform": "Windows-11-10.0.26200-SP0", "torch": "2.13.0+cu126", "cuda_runtime": "12.6", "cuda_available": true, "gpu": "NVIDIA GeForce GTX 1650 Ti"}
+PILOT: fixed small real-data subsets; results validate the pipeline, not research accuracy.
+Building deterministic file split (official Test is split 50/50 for validation/test, seed=41).
+Data checked: train=256, val=128, test=128; units=scaled_pixel
+{"scenario": "baseline", "device": "cuda", "window": 1, "temporal_axis": "csi", "train_samples": 256, "frames_per_batch": 64, "resume_epoch": 0, "resume_batch": 0}
+epoch=1/1 batch=1/4 step=1 loss=0.00360943 grad_norm=0.10160 elapsed_s=1.7
+{"epoch": 1, "global_step": 4, "lr": 0.001, "train_loss": 0.003241555590648204, "L_mse": 0.003241555590648204, "L_bone": 0.0, "L_smooth": 0.0, "L_sym": 0.0, "MPJPE_xy_px": 412.7033795750783, "PA_MPJPE_xy_px": 119.60410869251251, "velocity_xy_px_per_frame": null, "acceleration_xy_px_per_frame2": null, "MPJPE_xyz_px": null, "PA_MPJPE_xyz_px": null, "velocity_xyz_px_per_frame": null, "acceleration_xyz_px_per_frame2": null, "PCK20": 0.0, "R.Wrist_PCK20": 0.0, "L.Wrist_PCK20": 0.0, "PCK50": 0.0, "R.Wrist_PCK50": 0.0, "L.Wrist_PCK50": 0.0, "invalid_torso_frames": 0, "degenerate_gt_frames": 0}
+TEST {"MPJPE_xy_px": 419.16749078274177, "PA_MPJPE_xy_px": 116.7175573139835, "velocity_xy_px_per_frame": null, "acceleration_xy_px_per_frame2": null, "MPJPE_xyz_px": null, "PA_MPJPE_xyz_px": null, "velocity_xyz_px_per_frame": null, "acceleration_xyz_px_per_frame2": null, "PCK20": 0.0, "R.Wrist_PCK20": 0.0, "L.Wrist_PCK20": 0.0, "PCK50": 0.08680555555555555, "R.Wrist_PCK50": 0.0, "L.Wrist_PCK50": 0.0, "invalid_torso_frames": 0, "degenerate_gt_frames": 0}
+
+Scenario       MPJPE       PA-MPJPE      PCK20      PCK50    Unit
+baseline       419.1675       116.7176     0.0000     0.0868    px
+{"scenario": "tcn", "device": "cuda", "window": 1, "temporal_axis": "csi", "train_samples": 256, "frames_per_batch": 64, "resume_epoch": 0, "resume_batch": 0}
+epoch=1/1 batch=1/4 step=1 loss=0.00327105 grad_norm=0.08145 elapsed_s=0.3
+{"epoch": 1, "global_step": 4, "lr": 0.001, "train_loss": 0.002779174130409956, "L_mse": 0.002779174130409956, "L_bone": 0.0, "L_smooth": 0.0, "L_sym": 0.0, "MPJPE_xy_px": 412.55665321469263, "PA_MPJPE_xy_px": 119.39251963163757, "velocity_xy_px_per_frame": null, "acceleration_xy_px_per_frame2": null, "MPJPE_xyz_px": null, "PA_MPJPE_xyz_px": null, "velocity_xyz_px_per_frame": null, "acceleration_xyz_px_per_frame2": null, "PCK20": 0.0, "R.Wrist_PCK20": 0.0, "L.Wrist_PCK20": 0.0, "PCK50": 0.0, "R.Wrist_PCK50": 0.0, "L.Wrist_PCK50": 0.0, "invalid_torso_frames": 0, "degenerate_gt_frames": 0}
+TEST {"MPJPE_xy_px": 418.9602435345228, "PA_MPJPE_xy_px": 116.5151961841002, "velocity_xy_px_per_frame": null, "acceleration_xy_px_per_frame2": null, "MPJPE_xyz_px": null, "PA_MPJPE_xyz_px": null, "velocity_xyz_px_per_frame": null, "acceleration_xyz_px_per_frame2": null, "PCK20": 0.0, "R.Wrist_PCK20": 0.0, "L.Wrist_PCK20": 0.0, "PCK50": 0.08680555555555555, "R.Wrist_PCK50": 0.0, "L.Wrist_PCK50": 0.0, "invalid_torso_frames": 0, "degenerate_gt_frames": 0}
+
+Scenario       MPJPE       PA-MPJPE      PCK20      PCK50    Unit
+baseline       419.1675       116.7176     0.0000     0.0868    px
+tcn            418.9602       116.5152     0.0000     0.0868    px
+
+Scenario       MPJPE       PA-MPJPE      PCK20      PCK50    Unit
+baseline       419.1675       116.7176     0.0000     0.0868    px
+tcn            418.9602       116.5152     0.0000     0.0868    px
+Suite complete. Results: <REPOSITORY>\runs_wipose_trial\real_data_validation\pilot_20261119_141547_515630\comparison.csv

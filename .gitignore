@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
 .venv/
+.venv*/
 runs/
 runs_wipose/
 runs_smoke/
@@ -21,3 +22,5 @@ torchinductor_*/
 .env
 .env.*
 runs_preflight/
+runs_wipose_trial/
+*.rar
