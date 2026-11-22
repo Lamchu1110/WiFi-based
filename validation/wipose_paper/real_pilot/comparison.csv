@@ -1,0 +1,3 @@
+﻿scenario,evaluated_epoch,epochs,coordinate_unit,MPJPE,PA_MPJPE,PCK20,PCK50,R.Wrist_PCK20,L.Wrist_PCK20,R.Wrist_PCK50,L.Wrist_PCK50,train_samples,val_samples,test_samples
+baseline,1,1,px,431.87306669927096,119.60245932244275,0.0,0.0,0.0,0.0,0.0,0.0,256,0,128
+tcn,1,1,px,432.4950895878774,120.0627225569866,0.0,0.0,0.0,0.0,0.0,0.0,256,0,128

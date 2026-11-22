@@ -1,5 +1,5 @@
 {
-  "release": "ST-DSKPose-WiPose-Trial-2026-11-19",
+  "release": "ST-DSKPose-WiPose-Paper-2026-11-23",
   "source_project": "HPE-Li-ECCV2024",
   "data_included": false,
   "trained_weights_included": false,
@@ -13,12 +13,13 @@
     },
     {
       "path": ".gitignore",
-      "sha256": "68fe16fd6a1de37869b3ecd5eb3bf8a245f1b5dfb734c8f41ca2d3b0179d3b02",
-      "origin": "wipose_trial_update",
+      "sha256": "01fc75059cc5941749e59091fa5d480d2d0bd9062ee6e823aacb71d49a0058b2",
+      "origin": "paper_protocol_update",
       "source_sha256": "cd83322170e507f1bb8e3e238643a0481b23f09f6aaf8eb31592c7168bd1b6f2",
       "portable_snapshot_sha256": "06aaa3d94ee8b349c925e0536fb04a2a3f2f44b4f77c591d92268c1af4714faf",
       "v1_sha256": "3892373b4a2af3fa397c0ca1de4c5b67390a974d5edacc76984f8a3a5d91ee75",
-      "v2_base_sha256": "333ad62bac851d4ac8cd24a697aad8afdd23c7d88a2ab02fc6d7b433a29d8d70"
+      "v2_base_sha256": "333ad62bac851d4ac8cd24a697aad8afdd23c7d88a2ab02fc6d7b433a29d8d70",
+      "trial_base_sha256": "68fe16fd6a1de37869b3ecd5eb3bf8a245f1b5dfb734c8f41ca2d3b0179d3b02"
     },
     {
       "path": "dataset_lib/__init__.py",
@@ -60,11 +61,12 @@
     },
     {
       "path": "docs/ERROR_LOG.md",
-      "sha256": "c786e20147693b9e4fe1eba83f3bd8c93418970c003789c9d8424c769c050781",
-      "origin": "wipose_trial_update",
+      "sha256": "7cb766bfb874a697541bc63edd1793cb6a729cc90fcd725934ec38f7cdccbfb9",
+      "origin": "paper_protocol_update",
       "source_sha256": null,
       "v1_sha256": "58868ded09e0766e85a6144c0211265a41d894a68d379cdc12dd8d81150fe888",
-      "v2_base_sha256": "4f8f1058c830a9a5fa8e8275597aa6691c95d77d705ced85c559620be54066d6"
+      "v2_base_sha256": "4f8f1058c830a9a5fa8e8275597aa6691c95d77d705ced85c559620be54066d6",
+      "trial_base_sha256": "c786e20147693b9e4fe1eba83f3bd8c93418970c003789c9d8424c769c050781"
     },
     {
       "path": "docs/EXPERIMENTS.md",
@@ -157,12 +159,13 @@
     },
     {
       "path": "README.md",
-      "sha256": "7b8ba8397a4465c7650803abd208365b517212c68b58ce9a6bc02194eafc7caa",
-      "origin": "wipose_trial_update",
+      "sha256": "02c682a31521e8fa486d7e585d25fe8a4b4f722eb327478629610ee6eedc1d17",
+      "origin": "paper_protocol_update",
       "source_sha256": "f3c15ed2c1c0defdbcaf41bb1487e1c6da24417a43c83ce80c132a936fa01085",
       "portable_snapshot_sha256": "1138f21984c4c74a9f305d7255ce7a08e67db4971c72856a2321303de0c15a16",
       "v1_sha256": "6ec2ba917ddb3bb18391f539bccf1a94e4a576d17b4f2e975bc95fc11139071e",
-      "v2_base_sha256": "13bd2176b3b6bcea7ddde0025d37ead0fb011bb3f5853dbb034e86b0c496ca29"
+      "v2_base_sha256": "13bd2176b3b6bcea7ddde0025d37ead0fb011bb3f5853dbb034e86b0c496ca29",
+      "trial_base_sha256": "7b8ba8397a4465c7650803abd208365b517212c68b58ce9a6bc02194eafc7caa"
     },
     {
       "path": "requirements-wipose.txt",
@@ -230,10 +233,11 @@
     },
     {
       "path": "training.py",
-      "origin": "wipose_trial_update",
+      "origin": "paper_protocol_update",
       "source_sha256": null,
-      "sha256": "d50388a53bc2477995cb575e4f150b5b992dd3101b50e5ce95b5e3bb2563ea45",
-      "v2_base_sha256": "408cde164287e2dfaac0e8ab828ce74461c4a2a96c2e5a7a316b62d11e9d6558"
+      "sha256": "e3e7b34d16826b2b11fc3908b4de7d1531d6585736c5c5add88941fe5c0e1341",
+      "v2_base_sha256": "408cde164287e2dfaac0e8ab828ce74461c4a2a96c2e5a7a316b62d11e9d6558",
+      "trial_base_sha256": "d50388a53bc2477995cb575e4f150b5b992dd3101b50e5ce95b5e3bb2563ea45"
     },
     {
       "path": "training_cli.py",
@@ -308,9 +312,10 @@
     },
     {
       "path": "docs/WIPOSE_TRIAL.md",
-      "origin": "wipose_trial_added",
+      "origin": "paper_protocol_update",
       "source_sha256": null,
-      "sha256": "25fab8eb1440dc1db00ee854362f97ff9ed6559a2a60e1e4d7af8b44a026c9a9"
+      "sha256": "f42601f7f5256ff50ce2a165584e510a1068860b6e53f93f87e05613a65989c4",
+      "trial_base_sha256": "25fab8eb1440dc1db00ee854362f97ff9ed6559a2a60e1e4d7af8b44a026c9a9"
     },
     {
       "path": "requirements-wipose-trial.txt",
@@ -329,11 +334,47 @@
       "origin": "wipose_trial_added",
       "source_sha256": null,
       "sha256": "14695b6daaf8c0d3a8c55dc46e92c4312f5fb0776b863763bf8179147903f925"
+    },
+    {
+      "path": "benchmark_wipose_io.py",
+      "origin": "paper_protocol_added",
+      "source_sha256": null,
+      "sha256": "6dcd2851657ad23a413b654e935563f95fa7dd2cd7ff4b1204e5a23504e60d76"
+    },
+    {
+      "path": "run_wipose_paper.py",
+      "origin": "paper_protocol_added",
+      "source_sha256": null,
+      "sha256": "d7b7d6d2acff2a71ada98c84704c5eb2bd12068f7ff60beb6d3486af70d0c04c"
+    },
+    {
+      "path": "test_wipose_paper.py",
+      "origin": "paper_protocol_added",
+      "source_sha256": null,
+      "sha256": "17fb56912822e527a8f28f40d046a429c5c833f916f600e62e2c23e265ec32f7"
+    },
+    {
+      "path": "utils/data_loading.py",
+      "origin": "paper_protocol_added",
+      "source_sha256": null,
+      "sha256": "c2cc7ee2a98a52032d361543a7664decfd3d2e77481c5e98a1a0f94a05e7ab82"
+    },
+    {
+      "path": "wipose/paper_data.py",
+      "origin": "paper_protocol_added",
+      "source_sha256": null,
+      "sha256": "68f97b29fa011330ebdd17da2ec1574ffac79fcfcd9283340fead20a707f3909"
+    },
+    {
+      "path": "docs/WIPOSE_PAPER_PROTOCOL.md",
+      "origin": "paper_protocol_added",
+      "source_sha256": null,
+      "sha256": "c1fcd2fbcb15996ac0eba572d5a52ead91aea40fe1b9a063cf3fc96788d27c98"
     }
   ],
   "repository": "https://github.com/Lamchu1110/WiFi-based",
   "architecture_version": 2,
   "checkpoint_format_version": 2,
-  "branch": "experiment/wipose-baseline-tcn",
-  "base_commit": "3e7e2c88baccec667851816b4a388d85677472b1"
+  "branch": "experiment/wipose-paper-protocol",
+  "base_commit": "6c0a57d65f0426220f51d5276b760c79771a7cba"
 }

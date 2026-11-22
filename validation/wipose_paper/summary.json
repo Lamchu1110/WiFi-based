@@ -1,0 +1,90 @@
+{
+  "date": "2026-11-23",
+  "branch": "experiment/wipose-paper-protocol",
+  "base_commit": "6c0a57d",
+  "cpu": {
+    "python": "3.12.8",
+    "torch": "2.7.0+cpu",
+    "test_wipose_paper.py": {
+      "tests": 8,
+      "exit_code": 0
+    },
+    "test_reliability.py": {
+      "tests": 13,
+      "exit_code": 0
+    },
+    "test_wipose_trial.py": {
+      "tests": 8,
+      "exit_code": 0
+    },
+    "test_training_smoke.py": {
+      "exit_code": 0
+    },
+    "test_wipose_smoke.py": {
+      "exit_code": 0
+    }
+  },
+  "real_pilot": {
+    "source_pool_mat_files": 512,
+    "split_before_pilot": [
+      358,
+      154
+    ],
+    "pilot_train": 256,
+    "pilot_test": 128,
+    "validation": 0,
+    "epochs": 1,
+    "updates_per_model": 8,
+    "batch_size": 32,
+    "scenarios": [
+      "baseline",
+      "tcn"
+    ],
+    "status": "complete",
+    "environment": {
+      "python": "3.12.8 (tags/v3.12.8:2dc476b, Dec  3 2024, 19:30:04) [MSC v.1942 64 bit (AMD64)]",
+      "torch": "2.13.0+cu126",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "cuda_runtime": "12.6",
+      "gpu": "NVIDIA GeForce GTX 1650 Ti",
+      "workers": 0,
+      "precision": "fp32",
+      "tf32": false
+    }
+  },
+  "benchmark": {
+    "scope": "warm-cache CPU data reading and collation ONLY; no forward/backward, validation or cache build",
+    "tensor_equivalence": "exact for every measured sample",
+    "samples": 256,
+    "workers": 0,
+    "repeats": 3,
+    "seconds": {
+      "mat": [
+        0.4460873000207357,
+        0.44898420001845807,
+        0.4582498000236228
+      ],
+      "mmap": [
+        0.0031148999696597457,
+        0.00332759995944798,
+        0.0031591999577358365
+      ]
+    },
+    "median_seconds": {
+      "mat": 0.44898420001845807,
+      "mmap": 0.0031591999577358365
+    },
+    "read_only_speedup": 142.11958914441112,
+    "python": "3.12.8",
+    "torch": "2.7.0+cpu",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "split_fingerprint": "f3c68fba0898b050b5e8734d0acd64310f97f65c5eebcf52a94c79dcfd3a6cd9"
+  },
+  "limits": [
+    "No 50-epoch run",
+    "No Taiwan RTX 3060 execution",
+    "CPU 2.7, GPU 2.13 tested separately",
+    "I/O-only benchmark is not total training throughput",
+    "BF16 not validated, default FP32"
+  ]
+}

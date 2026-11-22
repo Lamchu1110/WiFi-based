@@ -23,4 +23,5 @@ torchinductor_*/
 .env.*
 runs_preflight/
 runs_wipose_trial/
+runs_wipose_paper/
 *.rar

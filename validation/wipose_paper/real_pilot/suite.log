@@ -1,0 +1,24 @@
+Suite: <REPOSITORY>\runs_wipose_paper\final_validation\pilot_20261123_030304_511848
+{"python": "3.12.8 (tags/v3.12.8:2dc476b, Dec  3 2024, 19:30:04) [MSC v.1942 64 bit (AMD64)]", "torch": "2.13.0+cu126", "platform": "Windows-11-10.0.26200-SP0", "cuda_runtime": "12.6", "gpu": "NVIDIA GeForce GTX 1650 Ti", "workers": 0, "precision": "fp32", "tf32": false}
+SGDM lr=0.001 momentum=0.9 batch=32; plain MSE; 70/30 random split; final epoch selection.
+Building cache once from 384 MAT files: <REPOSITORY>\data\real_cache\6b8dd0b4f029bc08cd3faed5257138ac60c04e8ae7a91852b977f1443bee2d36
+Cache 384/384 (0.8s)
+{"scenario": "baseline", "device": "cuda", "window": 1, "temporal_axis": "csi", "train_samples": 256, "frames_per_batch": 32, "resume_epoch": 0, "resume_batch": 0}
+epoch=1/1 batch=1/8 step=1 loss=0.25665188 grad_norm=5.26022 elapsed_s=0.4
+{"epoch": 1, "global_step": 8, "lr": 0.001, "train_loss": 0.2579271551221609, "L_mse": 0.2579271551221609, "L_bone": 0.0, "L_smooth": 0.0, "L_sym": 0.0}
+TIMING {"epoch": 1, "starting_batch": 0, "data_seconds": 0.012964699999429286, "train_seconds": 0.722334100108128, "checkpoint_seconds": 0.12775859999237582, "samples": 256, "validation_seconds": 5.00003807246685e-07}
+TEST {"MPJPE_xy_px": 431.87306669927096, "PA_MPJPE_xy_px": 119.60245932244275, "velocity_xy_px_per_frame": null, "acceleration_xy_px_per_frame2": null, "MPJPE_xyz_px": null, "PA_MPJPE_xyz_px": null, "velocity_xyz_px_per_frame": null, "acceleration_xyz_px_per_frame2": null, "PCK20": 0.0, "R.Wrist_PCK20": 0.0, "L.Wrist_PCK20": 0.0, "PCK50": 0.0, "R.Wrist_PCK50": 0.0, "L.Wrist_PCK50": 0.0, "invalid_torso_frames": 0, "degenerate_gt_frames": 0}
+Scenario       MPJPE(px)  PA-MPJPE(px)  PCK20(%)  PCK50(%)
+baseline     431.8731  119.6025  0.0000  0.0000
+{"scenario": "tcn", "device": "cuda", "window": 1, "temporal_axis": "csi", "train_samples": 256, "frames_per_batch": 32, "resume_epoch": 0, "resume_batch": 0}
+epoch=1/1 batch=1/8 step=1 loss=0.26044002 grad_norm=5.43829 elapsed_s=0.1
+{"epoch": 1, "global_step": 8, "lr": 0.001, "train_loss": 0.25443744100630283, "L_mse": 0.25443744100630283, "L_bone": 0.0, "L_smooth": 0.0, "L_sym": 0.0}
+TIMING {"epoch": 1, "starting_batch": 0, "data_seconds": 0.006307500007096678, "train_seconds": 0.4484617999987677, "checkpoint_seconds": 0.142072000016924, "samples": 256, "validation_seconds": 5.00003807246685e-07}
+TEST {"MPJPE_xy_px": 432.4950895878774, "PA_MPJPE_xy_px": 120.0627225569866, "velocity_xy_px_per_frame": null, "acceleration_xy_px_per_frame2": null, "MPJPE_xyz_px": null, "PA_MPJPE_xyz_px": null, "velocity_xyz_px_per_frame": null, "acceleration_xyz_px_per_frame2": null, "PCK20": 0.0, "R.Wrist_PCK20": 0.0, "L.Wrist_PCK20": 0.0, "PCK50": 0.0, "R.Wrist_PCK50": 0.0, "L.Wrist_PCK50": 0.0, "invalid_torso_frames": 0, "degenerate_gt_frames": 0}
+Scenario       MPJPE(px)  PA-MPJPE(px)  PCK20(%)  PCK50(%)
+baseline     431.8731  119.6025  0.0000  0.0000
+tcn          432.4951  120.0627  0.0000  0.0000
+Scenario       MPJPE(px)  PA-MPJPE(px)  PCK20(%)  PCK50(%)
+baseline     431.8731  119.6025  0.0000  0.0000
+tcn          432.4951  120.0627  0.0000  0.0000
+Suite complete: <REPOSITORY>\runs_wipose_paper\final_validation\pilot_20261123_030304_511848

@@ -1,5 +1,15 @@
 # Nhật ký sửa lỗi và kiểm thử
 
+## 2026-11-23 — Protocol theo paper và cache WiPose
+
+- Đối chiếu lại mục 4/Bảng 1: paper ghi SGDM/batch 32/50 epoch, WiPose 70/30. Script công khai AdamW/batch 64 là recipe khác. Nhận định trước đây “SGDM chỉ áp dụng MM-Fi” không đúng với mô tả paper.
+- Đính chính nhận định cũ về metric cộng qua epoch: `att_wipose.py` có reset `metric` trong từng epoch. Những khác biệt đã xác minh là aggregation/visibility, split và optimizer, không phải lỗi cộng lẫn epoch.
+- Thêm `run_wipose_paper.py` với SGD lr 0.001, momentum 0.9, batch 32, MSE XY, 70/30. Theo lựa chọn của người dùng, chỉ đánh giá epoch cuối, không dùng test chọn checkpoint. LR cố định, weight decay 0 và split seed 41 là lựa chọn được công bố rõ, không giả định chúng là thông số tác giả đã xác nhận.
+- Thêm cache float32 mmap, checksum, ghi hoàn thành atomic, kiểm tra nguyên vẹn raw/cache, persistent workers. Pilot chỉ cache mẫu nhỏ. Gom finite checks và số liệu loss để giảm đồng bộ CPU/GPU; thêm timing theo từng công đoạn.
+- Timer `monotonic` trên máy Windows trả các khoảng ngắn bằng 0; đã chuyển phép đo công đoạn sang `perf_counter` để đo chi tiết hơn. Không ảnh hưởng cập nhật mô hình.
+- Checkpoint từ nhánh AdamW cũ không được resume vào protocol mới. Giữ riêng `final.pt`, không gọi là best theo test.
+- Bằng chứng kiểm thử và phạm vi đo tốc độ được lưu trong `validation/wipose_paper/`. Không kết luận cải thiện độ chính xác từ pilot ngắn.
+
 ## 2026-11-19 — Nhánh thử WiPose Baseline/CSI-TCN
 
 - Thêm `run_wipose_comparison.py`: preflight, pilot nhỏ, train hai mô hình cùng recipe, bảng CSV/JSON và resume suite. Lỗi runtime được lưu cùng log của suite và model.

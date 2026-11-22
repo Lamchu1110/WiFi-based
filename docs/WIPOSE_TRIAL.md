@@ -1,5 +1,7 @@
 # Recipe và giới hạn của thử nghiệm WiPose
 
+**Lịch sử nhánh AdamW 19/11/2026.** Protocol SGDM/70–30 mới nằm ở [WIPOSE_PAPER_PROTOCOL.md](WIPOSE_PAPER_PROTOCOL.md), dùng `run_wipose_paper.py`. Ngày 23/11 đã đối chiếu lại paper: SGDM/batch 32 được mô tả chung cho các thí nghiệm, không chỉ riêng MM-Fi. Cũng đính chính rằng `att_wipose.py` đặt lại danh sách metric mỗi epoch; không có bằng chứng nó cộng lẫn metric qua epoch.
+
 Nhánh: `experiment/wipose-baseline-tcn`, bắt đầu từ `main` commit `3e7e2c8`, ngày 19/11/2026.
 
 ## Cơ sở đối chiếu
@@ -26,7 +28,7 @@ Nhánh: `experiment/wipose-baseline-tcn`, bắt đầu từ `main` commit `3e7e2
 | Chia tập | Train nguyên gốc; Test tách 50/50 validation/test với seed 41, filename được sort |
 | TCN | Baseline giữ pooling gốc; TCN giữ T=5 qua backbone, TCN theo CSI time rồi pool về decoder |
 
-`constant.py` của snapshot nguồn đặt **60 epochs**, trong khi lịch learning rate của script dùng mốc 20 và 30, có thể thành âm khi chạy quá dài. Nhánh này đặt **50 epochs** cho run đầy đủ và chặn learning rate âm; không gọi đây là tái lập chính xác mọi setting gốc. SGDM batch 32 là cấu hình MM-Fi trước đó, không dùng làm recipe WiPose mặc định ở đây.
+`constant.py` của snapshot nguồn đặt **60 epochs**, trong khi lịch learning rate của script dùng mốc 20 và 30, có thể thành âm khi chạy quá dài. Nhánh thử cũ đặt **50 epochs** cho run đầy đủ và chặn learning rate âm; đây là recipe từ script công khai, khác SGDM/batch 32 mô tả trong bài báo.
 
 Bản gốc không cố định thứ tự `os.listdir`; nhánh này sort tên file để split lặp lại được. Vì vậy cùng seed 41 không bảo đảm đúng từng mẫu của một lần chạy upstream không lưu inventory. Các tập có cùng dữ liệu/seed trong một suite của nhánh này thì giống nhau hoàn toàn.
 
@@ -34,7 +36,7 @@ Bản gốc không cố định thứ tự `os.listdir`; nhánh này sort tên f
 
 Nhãn công khai được suy từ ảnh bằng AlphaPose; không có phép hiệu chuẩn biến pixel thành khoảng cách vật lý trong loader. Vì vậy nhánh này mặc định khai báo `pixel` và ghi `MPJPE_xy_px`, `PA_MPJPE_xy_px`. Nhân tọa độ với 0.001 để tối ưu không biến nhãn ảnh thành mét. `--wipose-coordinate-unit mm` chỉ dùng cho dữ liệu đã được xác minh có nhãn mm thật; metric khi đó mang tên `_mm`.
 
-PCK dùng torso giữa joint 5 và joint 8 theo code nguồn. Ngưỡng 0.2/0.5 là tỉ lệ chiều dài torso. Joint confidence bằng 0 bị loại; pose có torso không hợp lệ được thống kê và loại khỏi PCK. PA alignment tính riêng từng pose. Kết quả gốc có khác biệt về aggregation/visibility và vòng validation; nhánh này tính metric lại mỗi epoch, không cộng lẫn các epoch.
+PCK dùng torso giữa joint 5 và joint 8 theo code nguồn. Ngưỡng 0.2/0.5 là tỉ lệ chiều dài torso. Joint confidence bằng 0 bị loại; pose có torso không hợp lệ được thống kê và loại khỏi PCK. PA alignment tính riêng từng pose. Khác biệt với evaluator nguồn gồm aggregation/visibility; cả hai đều đặt lại metric mỗi epoch.
 
 Các cột `R.Wrist_*`, `L.Wrist_*` là khớp cổ tay phải/trái (joint 4/7). Đây là khớp tay mà ta theo dõi trong thử nghiệm WiPose.
 

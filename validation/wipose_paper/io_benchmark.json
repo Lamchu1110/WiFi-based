@@ -1,0 +1,28 @@
+{
+  "scope": "warm-cache CPU data reading and collation ONLY; no forward/backward, validation or cache build",
+  "tensor_equivalence": "exact for every measured sample",
+  "samples": 256,
+  "workers": 0,
+  "repeats": 3,
+  "seconds": {
+    "mat": [
+      0.4460873000207357,
+      0.44898420001845807,
+      0.4582498000236228
+    ],
+    "mmap": [
+      0.0031148999696597457,
+      0.00332759995944798,
+      0.0031591999577358365
+    ]
+  },
+  "median_seconds": {
+    "mat": 0.44898420001845807,
+    "mmap": 0.0031591999577358365
+  },
+  "read_only_speedup": 142.11958914441112,
+  "python": "3.12.8",
+  "torch": "2.7.0+cpu",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "split_fingerprint": "f3c68fba0898b050b5e8734d0acd64310f97f65c5eebcf52a94c79dcfd3a6cd9"
+}

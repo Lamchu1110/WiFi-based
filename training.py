@@ -8,12 +8,12 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from torch.utils.data import DataLoader
 
 from model import STHPE
 from utils.losses import KinematicPoseLoss
 from utils.metrics import PoseMetrics
 from utils.runtime import atomic_json,atomic_save,rng_state,restore_rng
+from utils.data_loading import OrderedSampler,make_loader
 
 
 SCENARIOS = {
@@ -23,9 +23,11 @@ SCENARIOS = {
 }
 
 
-def pose_objective(pred,gt,target_format,legacy=False):
+def pose_objective(pred,gt,target_format,legacy=False,objective_mode=None):
     pred,gt = pred.float(),gt.float()
     target = gt[...,:pred.shape[-1]]
+    if objective_mode == 'paper_mse':
+        return torch.nn.functional.mse_loss(pred,target)
     if legacy:
         if pred.shape[-1] != 2:
             raise ValueError('Legacy objective only supports XY')
@@ -41,17 +43,17 @@ def pose_objective(pred,gt,target_format,legacy=False):
     return torch.nn.functional.mse_loss(pred,target)
 
 
-def evaluate(model,dataset,device,name,target_format,batch_size,coordinate_unit='m'):
+def evaluate(model,dataset,device,name,target_format,batch_size,coordinate_unit='m',workers=0,metric_visibility='visible'):
     model.eval()
     metrics = PoseMetrics(name,model.direct_3d,coordinate_unit)
     generator = torch.Generator().manual_seed(123456)
-    loader = DataLoader(dataset,batch_size=batch_size,shuffle=False,generator=generator)
+    loader = make_loader(dataset,batch_size,device,workers,generator=generator)
     with torch.inference_mode():
         for batch in loader:
-            x = batch['input_wifi-csi'].float().to(device)
+            x = batch['input_wifi-csi'].float().to(device,non_blocking=True)
             gt = batch['output'].float()
             prediction = model(x)[0].float().cpu().numpy()
-            metrics.update(prediction,gt.numpy(),gt[...,2].numpy() if target_format=='xy_conf' else None)
+            metrics.update(prediction,gt.numpy(),gt[...,2].numpy() if target_format=='xy_conf' and metric_visibility=='visible' else None)
     return metrics.result()
 
 
@@ -69,6 +71,14 @@ def fit(args,name,scenario,bundle,out):
     optimizer_name = getattr(args,'optimizer','sgd')
     schedule_name = getattr(args,'schedule','v2')
     keep_last = getattr(args,'keep_last_batch',False)
+    selection_policy = getattr(args,'selection_policy','validation')
+    objective_mode = getattr(args,'objective_mode',None)
+    metric_visibility = getattr(args,'metric_visibility','visible')
+    workers = getattr(args,'workers',0)
+    if selection_policy not in ('validation','final') or workers < 0:
+        raise ValueError('Invalid checkpoint selection policy or workers')
+    if selection_policy == 'validation' and bundle.val is None:
+        raise ValueError('Validation checkpoint selection needs a validation set')
     if getattr(args,'select_metric',None) is None:
         args.select_metric = 'MPJPE_xy_px' if bundle.coordinate_unit == 'scaled_pixel' else 'MPJPE_xy_mm'
     use_tcn,direct_3d,use_kinematic = SCENARIOS[scenario]
@@ -81,7 +91,7 @@ def fit(args,name,scenario,bundle,out):
         temporal_axis = 'pose' if bundle.window > 1 else 'csi'
     if args.legacy_objective and (direct_3d or bundle.window != 1):
         raise ValueError('Legacy XY reproduction requires window=1 and an XY scenario')
-    if any(not len(s) for s in (bundle.train,bundle.val,bundle.test)) or len(bundle.train) < args.batch_size:
+    if any(not len(s) for s in (bundle.train,bundle.val,bundle.test) if s is not None) or len(bundle.train) < args.batch_size:
         raise ValueError('Insufficient frames/windows; reduce batch/window or verify split')
     if use_tcn and temporal_axis=='pose' and bundle.window < 2:
         raise ValueError('Pose TCN needs windows; native WiPose can use --temporal-axis csi')
@@ -108,6 +118,7 @@ def fit(args,name,scenario,bundle,out):
         'amp':args.amp,'amp_dtype':args.amp_dtype,'deterministic':args.deterministic,'selection':args.select_metric,'selection_mode':args.select_mode,
         'optimizer':optimizer_name,'schedule':schedule_name,'keep_last_batch':keep_last,
         'coordinate_unit':bundle.coordinate_unit,
+        'selection_policy':selection_policy,'objective_mode':objective_mode,'metric_visibility':metric_visibility,
     }
     if args.resume:
         checkpoint = torch.load(args.resume,map_location='cpu',weights_only=True)
@@ -117,19 +128,21 @@ def fit(args,name,scenario,bundle,out):
     else:
         checkpoint = None
     metadata = {**vars(args),'contract':contract,'train_samples':len(bundle.train),
-                'val_samples':len(bundle.val),'test_samples':len(bundle.test),'frames_per_batch':args.batch_size*bundle.window,
+                'val_samples':len(bundle.val) if bundle.val is not None else 0,'test_samples':len(bundle.test),'frames_per_batch':args.batch_size*bundle.window,
                 'eval_window_counting':'per window occurrence; default MM-Fi stride equals width, tails dropped',
                 'metrics':'XY common; XYZ additionally; torso-normalized PCK; velocity/acceleration within explicit windows',
                 'causality':'noncausal window model; not an online/causal latency benchmark'}
     # Preflight and incompatible resume never overwrite a previous run's config/checkpoint.
     if args.preflight_only:
         for dataset in (bundle.train,bundle.val,bundle.test):
+            if dataset is None:
+                continue
             for index in (0,len(dataset)-1):
                 sample = dataset[index]
                 if not all(torch.isfinite(v).all() for v in sample.values()):
                     raise ValueError('Nonfinite preflight sample')
         atomic_json(out/'preflight.json',metadata)
-        print(f'Preflight PASS: train={len(bundle.train)} val={len(bundle.val)} test={len(bundle.test)} frames/batch={args.batch_size*bundle.window}',flush=True)
+        print(f'Preflight PASS: train={len(bundle.train)} val={metadata["val_samples"]} test={len(bundle.test)} frames/batch={args.batch_size*bundle.window}',flush=True)
         return 'preflight_pass'
     seed_all(args.seed,args.deterministic)
     model = STHPE(name,use_tcn=use_tcn,direct_3d=direct_3d,temporal_axis=temporal_axis).to(device)
@@ -143,7 +156,9 @@ def fit(args,name,scenario,bundle,out):
         raise ValueError(f'Unsupported optimizer: {optimizer_name}')
     # Versioned schedule: fixed 20-epoch plateau (or total epochs if shorter), then linear to 1%.
     plateau = min(20,args.epochs)
-    if schedule_name == 'upstream_wipose':
+    if schedule_name == 'constant':
+        lr_scale = lambda epoch: 1.0
+    elif schedule_name == 'upstream_wipose':
         # att_wipose.py: fixed 20 epochs, decay over 31; clamp avoids negative LR beyond epoch 50.
         lr_scale = lambda epoch: max(0.0,1.0-max(0,epoch+1-20)/31.0)
     elif schedule_name == 'v2':
@@ -194,6 +209,10 @@ def fit(args,name,scenario,bundle,out):
     save()  # Even interruption before the first optimizer update has a resumable checkpoint.
     in_step = False
     started = time.monotonic()
+    sampler = OrderedSampler()
+    generator = torch.Generator()
+    loader = make_loader(bundle.train,args.batch_size,device,workers,sampler,
+                         drop_last=not keep_last,generator=generator)
     try:
         while cursor['epoch'] < args.epochs:
             epoch = cursor['epoch']
@@ -202,11 +221,14 @@ def fit(args,name,scenario,bundle,out):
             batch_count = math.ceil(len(permutation)/args.batch_size) if keep_last else len(permutation)//args.batch_size
             if cursor['next_batch'] > batch_count:
                 raise ValueError('Invalid checkpoint cursor')
-            remaining = permutation[cursor['next_batch']*args.batch_size:batch_count*args.batch_size]
-            generator = torch.Generator().manual_seed(args.seed+epoch+100000)
-            loader = DataLoader(bundle.train,batch_size=args.batch_size,sampler=remaining,drop_last=not keep_last,
-                                generator=generator,pin_memory=device.type=='cuda')
+            sampler.indices = permutation[cursor['next_batch']*args.batch_size:batch_count*args.batch_size]
+            generator.manual_seed(args.seed+epoch+100000)
+            timing = {'epoch':epoch+1,'starting_batch':cursor['next_batch'],'data_seconds':0.0,
+                      'train_seconds':0.0,'checkpoint_seconds':0.0,'samples':0}
+            previous_end = time.perf_counter()
             for batch in loader:
+                batch_start = time.perf_counter()
+                timing['data_seconds'] += batch_start-previous_end
                 in_step = True
                 x,gt = batch['input_wifi-csi'].float().to(device,non_blocking=True),batch['output'].float().to(device,non_blocking=True)
                 if not torch.isfinite(x).all() or not torch.isfinite(gt).all():
@@ -217,7 +239,7 @@ def fit(args,name,scenario,bundle,out):
                 if use_kinematic:
                     loss,parts = criterion(prediction,gt,epoch=epoch,return_components=True)
                 else:
-                    loss = pose_objective(prediction,gt,bundle.target_format,args.legacy_objective)
+                    loss = pose_objective(prediction,gt,bundle.target_format,args.legacy_objective,objective_mode)
                     zero = loss.detach()*0
                     parts = {'L_mse':loss,'L_bone':zero,'L_smooth':zero,'L_sym':zero}
                 if not torch.isfinite(loss):
@@ -228,35 +250,46 @@ def fit(args,name,scenario,bundle,out):
                                                       error_if_nonfinite=True)
                 scaler.step(optimizer)
                 scaler.update()
-                if not all(torch.isfinite(p).all() for p in model.parameters()):
+                if not torch.stack([torch.isfinite(p).all() for p in model.parameters()]).all():
                     raise FloatingPointError('Optimizer produced nonfinite parameters; previous checkpoint preserved')
                 size = len(x)
-                cursor['loss_sum'] += loss.item()*size
+                values = torch.stack([loss.detach(),*[v.detach() for v in parts.values()]]).cpu().tolist()
+                cursor['loss_sum'] += values[0]*size
                 cursor['samples'] += size
-                for key,value in parts.items():
-                    cursor['components'][key] = cursor['components'].get(key,0.0)+value.item()*size
+                for key,value in zip(parts,values[1:]):
+                    cursor['components'][key] = cursor['components'].get(key,0.0)+value*size
                 cursor['next_batch'] += 1
                 cursor['global_step'] += 1
                 in_step = False
+                timing['samples'] += size
+                timing['train_seconds'] += time.perf_counter()-batch_start
                 if cursor['global_step'] % args.log_every == 0 or cursor['global_step']==1:
                     print(f"epoch={epoch+1}/{args.epochs} batch={cursor['next_batch']}/{batch_count} step={cursor['global_step']} loss={loss.item():.8f} grad_norm={float(norm):.5f} elapsed_s={time.monotonic()-started:.1f}",flush=True)
                 if cursor['global_step'] % args.checkpoint_every == 0:
+                    checkpoint_start = time.perf_counter()
                     save()
+                    timing['checkpoint_seconds'] += time.perf_counter()-checkpoint_start
                 if args.max_steps and cursor['global_step'] >= args.max_steps:
                     save()
                     print('Stopped at --max-steps; resume from last.pt with the same contract',flush=True)
                     return 'interrupted'
-            metrics = evaluate(model,bundle.val,device,name,bundle.target_format,args.eval_batch_size,bundle.coordinate_unit)
+                previous_end = time.perf_counter()
+            eval_start = time.perf_counter()
+            metrics = evaluate(model,bundle.val,device,name,bundle.target_format,args.eval_batch_size,bundle.coordinate_unit,workers,metric_visibility) if selection_policy=='validation' else {}
+            timing['validation_seconds'] = time.perf_counter()-eval_start
             result = {'epoch':epoch+1,'global_step':cursor['global_step'],'lr':optimizer.param_groups[0]['lr'],
                       'train_loss':cursor['loss_sum']/cursor['samples'],
                       **{key:value/cursor['samples'] for key,value in cursor['components'].items()},**metrics}
-            score = result.get(args.select_metric)
-            if score is None or not math.isfinite(score):
-                raise ValueError(f'Checkpoint selection metric unavailable: {args.select_metric}')
-            improved = cursor['best_score'] is None or (score < cursor['best_score'] if args.select_mode=='min' else score > cursor['best_score'])
-            if improved:
-                cursor['best_score'],cursor['best_epoch'] = score,epoch+1
-                best_model = {key:value.detach().cpu().clone() for key,value in model.state_dict().items()}
+            if selection_policy=='validation':
+                score = result.get(args.select_metric)
+                if score is None or not math.isfinite(score):
+                    raise ValueError(f'Checkpoint selection metric unavailable: {args.select_metric}')
+                improved = cursor['best_score'] is None or (score < cursor['best_score'] if args.select_mode=='min' else score > cursor['best_score'])
+                if improved:
+                    cursor['best_score'],cursor['best_epoch'] = score,epoch+1
+                    best_model = {key:value.detach().cpu().clone() for key,value in model.state_dict().items()}
+            else:
+                cursor['best_epoch'] = epoch+1
             exists = csv_path.exists() and csv_path.stat().st_size > 0
             with csv_path.open('a',encoding='utf-8',newline='') as file:
                 writer = csv.DictWriter(file,fieldnames=list(result))
@@ -269,21 +302,34 @@ def fit(args,name,scenario,bundle,out):
             print(json.dumps(result,allow_nan=False),flush=True)
             scheduler.step()
             cursor.update(epoch=epoch+1,next_batch=0,loss_sum=0.0,samples=0,components={})
+            checkpoint_start = time.perf_counter()
             save()
-            atomic_save(out/'best.pt',{'format_version':2,'contract':contract,'model':best_model,
-                                     'best_epoch':cursor['best_epoch'],'best_score':cursor['best_score']})
+            if selection_policy=='validation':
+                atomic_save(out/'best.pt',{'format_version':2,'contract':contract,'model':best_model,
+                                         'best_epoch':cursor['best_epoch'],'best_score':cursor['best_score']})
+            timing['checkpoint_seconds'] += time.perf_counter()-checkpoint_start
+            with (out/'performance.jsonl').open('a',encoding='utf-8') as stream:
+                stream.write(json.dumps(timing)+'\n')
+            print('TIMING '+json.dumps(timing),flush=True)
     except KeyboardInterrupt:
         if not in_step:
             save()
         print('Interrupted. Last atomic checkpoint remains available; an in-flight optimizer step is never saved.',flush=True)
         return 'interrupted'
+    if selection_policy=='final':
+        best_model = {key:value.detach().cpu().clone() for key,value in model.state_dict().items()}
     if best_model is None:
         raise RuntimeError('No validated model available for test')
     # Restore best from last.pt as well: a crash between last.pt and best.pt cannot lose the best weights.
     model.load_state_dict(best_model)
-    atomic_save(out/'best.pt',{'format_version':2,'contract':contract,'model':best_model,
-                             'best_epoch':cursor['best_epoch'],'best_score':cursor['best_score']})
-    metrics = evaluate(model,bundle.test,device,name,bundle.target_format,args.eval_batch_size,bundle.coordinate_unit)
-    atomic_json(out/'test_metrics.json',{'best_epoch':cursor['best_epoch'],**metrics})
+    selected = {'evaluated_epoch':cursor['epoch'],'selection_policy':'final'} if selection_policy=='final' else {
+        'best_epoch':cursor['best_epoch'],'best_score':cursor['best_score']}
+    atomic_save(out/('final.pt' if selection_policy=='final' else 'best.pt'),
+                {'format_version':2,'contract':contract,'model':best_model,**selected})
+    test_start = time.perf_counter()
+    metrics = evaluate(model,bundle.test,device,name,bundle.target_format,args.eval_batch_size,bundle.coordinate_unit,workers,metric_visibility)
+    atomic_json(out/'test_timing.json',{'seconds':time.perf_counter()-test_start,'samples':len(bundle.test)})
+    metric_metadata = selected if selection_policy=='final' else {'best_epoch':cursor['best_epoch']}
+    atomic_json(out/'test_metrics.json',{**metric_metadata,**metrics})
     print('TEST '+json.dumps(metrics,allow_nan=False),flush=True)
     return 'complete'

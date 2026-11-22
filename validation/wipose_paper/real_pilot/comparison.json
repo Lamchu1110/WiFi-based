@@ -1,0 +1,51 @@
+{
+  "status": "complete",
+  "selection": "fixed final epoch, never test-selected",
+  "rows": [
+    {
+      "scenario": "baseline",
+      "evaluated_epoch": 1,
+      "epochs": 1,
+      "coordinate_unit": "px",
+      "MPJPE": 431.87306669927096,
+      "PA_MPJPE": 119.60245932244275,
+      "PCK20": 0.0,
+      "PCK50": 0.0,
+      "R.Wrist_PCK20": 0.0,
+      "L.Wrist_PCK20": 0.0,
+      "R.Wrist_PCK50": 0.0,
+      "L.Wrist_PCK50": 0.0,
+      "train_samples": 256,
+      "val_samples": 0,
+      "test_samples": 128
+    },
+    {
+      "scenario": "tcn",
+      "evaluated_epoch": 1,
+      "epochs": 1,
+      "coordinate_unit": "px",
+      "MPJPE": 432.4950895878774,
+      "PA_MPJPE": 120.0627225569866,
+      "PCK20": 0.0,
+      "PCK50": 0.0,
+      "R.Wrist_PCK20": 0.0,
+      "L.Wrist_PCK20": 0.0,
+      "R.Wrist_PCK50": 0.0,
+      "L.Wrist_PCK50": 0.0,
+      "train_samples": 256,
+      "val_samples": 0,
+      "test_samples": 128
+    }
+  ],
+  "note": "Reported-paper hyperparameters with documented choices, not exact reproduction claim",
+  "tcn_minus_baseline": {
+    "MPJPE": 0.6220228886064092,
+    "PA_MPJPE": 0.4602632345438451,
+    "PCK20": 0.0,
+    "PCK50": 0.0,
+    "R.Wrist_PCK20": 0.0,
+    "L.Wrist_PCK20": 0.0,
+    "R.Wrist_PCK50": 0.0,
+    "L.Wrist_PCK50": 0.0
+  }
+}

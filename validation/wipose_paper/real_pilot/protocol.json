@@ -1,0 +1,45 @@
+{
+  "reported": {
+    "source": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/papers/04496.pdf",
+    "pages": [
+      8,
+      9
+    ],
+    "epochs": 50,
+    "optimizer": "SGD",
+    "momentum": 0.9,
+    "batch_size": 32,
+    "lr": 0.001,
+    "train_test_ratio": [
+      0.7,
+      0.3
+    ],
+    "objective": "MSE"
+  },
+  "implementation_choices": {
+    "split_seed": 41,
+    "model_seed": 0,
+    "selection": "final epoch, no validation/test model selection (user selected)",
+    "scheduler": "constant LR; paper does not specify decay",
+    "weight_decay": 0.0,
+    "mse_reduction": "mean over samples, joints and XY; no confidence weighting or /32",
+    "coordinates": "upstream XY*0.001 for training, pixel metrics; no physical calibration",
+    "metrics": "all 18 joints; invalid torso excluded from PCK; PA per pose",
+    "initialization": "same inherited HPEWiPoseModel backbone/decoder for both scenarios",
+    "architecture": "published repository snapshot, not independently proven identical to ECCV implementation",
+    "TCN": "includes pooling change preserving five CSI time samples, not pose frames",
+    "precision": "fp32",
+    "tf32": false,
+    "cache": "mmap"
+  },
+  "deviations": [
+    "pilot subset, not benchmark accuracy",
+    "epochs=1, not 50"
+  ],
+  "limits": [
+    "author split IDs/seed and validation policy not published in cited description",
+    "random frame split is not cross-subject or cross-sequence evaluation",
+    "native image labels do not justify reporting physical millimetres",
+    "no guarantee of paper table reproduction or improved accuracy"
+  ]
+}

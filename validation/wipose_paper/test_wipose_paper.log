@@ -1,0 +1,37 @@
+test_cache_is_exact_immutable_and_does_not_change_split (__main__.PaperTests.test_cache_is_exact_immutable_and_does_not_change_split) ... Building cache once from 96 MAT files: <USER>\AppData\Local\Temp\wipose_paper_h77qujy2\cache\efc2daebcc420b19b62fbe7dd2977fc420e06d2bd343d417e859f6395889df45
+Cache 96/96 (0.8s)
+ok
+test_corrupted_cache_rejected (__main__.PaperTests.test_corrupted_cache_rejected) ... Building cache once from 96 MAT files: <USER>\AppData\Local\Temp\wipose_paper_8jt58j75\cache\fccdd2e470b42c5df6ae6b57b99df9d70b7a5c01286a78e286aba53ae908bd6f
+Cache 96/96 (0.8s)
+ok
+test_final_policy_never_selects_using_test_and_resume_is_exact (__main__.PaperTests.test_final_policy_never_selects_using_test_and_resume_is_exact) ... Building cache once from 96 MAT files: <USER>\AppData\Local\Temp\wipose_paper_64zaisvs\cache\68b14c484678b234f873307b37d11f30373e04c0183057583e4d3e8783a4f6e4
+Cache 96/96 (0.9s)
+{"scenario": "baseline", "device": "cpu", "window": 1, "temporal_axis": "csi", "train_samples": 64, "frames_per_batch": 32, "resume_epoch": 0, "resume_batch": 0}
+epoch=1/2 batch=1/2 step=1 loss=0.21036981 grad_norm=15.03663 elapsed_s=0.3
+{"epoch": 1, "global_step": 2, "lr": 0.001, "train_loss": 0.20429131388664246, "L_mse": 0.20429131388664246, "L_bone": 0.0, "L_smooth": 0.0, "L_sym": 0.0}
+TIMING {"epoch": 1, "starting_batch": 0, "data_seconds": 0.016183900006581098, "train_seconds": 0.4890510000404902, "checkpoint_seconds": 0.09941589995287359, "samples": 64, "validation_seconds": 4.00003045797348e-07}
+{"epoch": 2, "global_step": 4, "lr": 0.001, "train_loss": 0.16907332092523575, "L_mse": 0.16907332092523575, "L_bone": 0.0, "L_smooth": 0.0, "L_sym": 0.0}
+TIMING {"epoch": 2, "starting_batch": 0, "data_seconds": 0.0012574999709613621, "train_seconds": 0.4795155000174418, "checkpoint_seconds": 0.13776739995228127, "samples": 64, "validation_seconds": 7.00005330145359e-07}
+TEST {"MPJPE_xy_px": 209.82960689983702, "PA_MPJPE_xy_px": 56.70875428337944, "velocity_xy_px_per_frame": null, "acceleration_xy_px_per_frame2": null, "MPJPE_xyz_px": null, "PA_MPJPE_xyz_px": null, "velocity_xyz_px_per_frame": null, "acceleration_xyz_px_per_frame2": null, "PCK20": 0.0, "R.Wrist_PCK20": 0.0, "L.Wrist_PCK20": 0.0, "PCK50": 0.0, "R.Wrist_PCK50": 0.0, "L.Wrist_PCK50": 0.0, "invalid_torso_frames": 0, "degenerate_gt_frames": 0}
+{"scenario": "baseline", "device": "cpu", "window": 1, "temporal_axis": "csi", "train_samples": 64, "frames_per_batch": 32, "resume_epoch": 0, "resume_batch": 0}
+epoch=1/2 batch=1/2 step=1 loss=0.21036981 grad_norm=15.03663 elapsed_s=0.2
+Stopped at --max-steps; resume from last.pt with the same contract
+{"scenario": "baseline", "device": "cpu", "window": 1, "temporal_axis": "csi", "train_samples": 64, "frames_per_batch": 32, "resume_epoch": 0, "resume_batch": 1}
+{"epoch": 1, "global_step": 2, "lr": 0.001, "train_loss": 0.20429131388664246, "L_mse": 0.20429131388664246, "L_bone": 0.0, "L_smooth": 0.0, "L_sym": 0.0}
+TIMING {"epoch": 1, "starting_batch": 1, "data_seconds": 4.599186200008262, "train_seconds": 0.22207769996020943, "checkpoint_seconds": 0.06575319997500628, "samples": 32, "validation_seconds": 4.00003045797348e-07}
+{"epoch": 2, "global_step": 4, "lr": 0.001, "train_loss": 0.16907332092523575, "L_mse": 0.16907332092523575, "L_bone": 0.0, "L_smooth": 0.0, "L_sym": 0.0}
+TIMING {"epoch": 2, "starting_batch": 0, "data_seconds": 0.003347999998368323, "train_seconds": 0.42946509999455884, "checkpoint_seconds": 0.06469769997056574, "samples": 64, "validation_seconds": 5.00003807246685e-07}
+TEST {"MPJPE_xy_px": 209.82960689983702, "PA_MPJPE_xy_px": 56.70875428337944, "velocity_xy_px_per_frame": null, "acceleration_xy_px_per_frame2": null, "MPJPE_xyz_px": null, "PA_MPJPE_xyz_px": null, "velocity_xyz_px_per_frame": null, "acceleration_xyz_px_per_frame2": null, "PCK20": 0.0, "R.Wrist_PCK20": 0.0, "L.Wrist_PCK20": 0.0, "PCK50": 0.0, "R.Wrist_PCK50": 0.0, "L.Wrist_PCK50": 0.0, "invalid_torso_frames": 0, "degenerate_gt_frames": 0}
+ok
+test_reported_settings_and_plain_mse (__main__.PaperTests.test_reported_settings_and_plain_mse) ... ok
+test_source_change_invalidates_cache_and_fingerprint (__main__.PaperTests.test_source_change_invalidates_cache_and_fingerprint) ... ok
+test_split_seventy_thirty_disjoint_and_independent_of_model_seed (__main__.PaperTests.test_split_seventy_thirty_disjoint_and_independent_of_model_seed) ... ok
+test_suite_resume_and_comparison_contract (__main__.PaperTests.test_suite_resume_and_comparison_contract) ... ok
+test_windows_workers_preserve_cached_order (__main__.PaperTests.test_windows_workers_preserve_cached_order) ... Building cache once from 96 MAT files: <USER>\AppData\Local\Temp\wipose_paper_h3h0u8ww\cache\83ebfb4e29a675620eba3e6cf17a7ffb5625a086866331ff3b501520c9e2be1e
+Cache 96/96 (0.9s)
+ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 48.532s
+
+OK

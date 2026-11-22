@@ -1,0 +1,25 @@
+test_adamw_mid_epoch_resume_preserves_weights_and_scheduler (__main__.WiPoseTrialTests.test_adamw_mid_epoch_resume_preserves_weights_and_scheduler) ... {"scenario": "baseline", "device": "cpu", "window": 1, "temporal_axis": "csi", "train_samples": 8, "frames_per_batch": 4, "resume_epoch": 0, "resume_batch": 0}
+epoch=1/1 batch=1/2 step=1 loss=0.00262447 grad_norm=0.98117 elapsed_s=0.2
+{"epoch": 1, "global_step": 2, "lr": 0.001, "train_loss": 0.0022628414444625378, "L_mse": 0.0022628414444625378, "L_bone": 0.0, "L_smooth": 0.0, "L_sym": 0.0, "MPJPE_xy_px": 211.56376934436727, "PA_MPJPE_xy_px": 56.59061769055582, "velocity_xy_px_per_frame": null, "acceleration_xy_px_per_frame2": null, "MPJPE_xyz_px": null, "PA_MPJPE_xyz_px": null, "velocity_xyz_px_per_frame": null, "acceleration_xyz_px_per_frame2": null, "PCK20": 0.0, "R.Wrist_PCK20": 0.0, "L.Wrist_PCK20": 0.0, "PCK50": 0.0, "R.Wrist_PCK50": 0.0, "L.Wrist_PCK50": 0.0, "invalid_torso_frames": 0, "degenerate_gt_frames": 0}
+TIMING {"epoch": 1, "starting_batch": 0, "data_seconds": 0.061999999976251274, "train_seconds": 0.20400000002700835, "checkpoint_seconds": 0.15600000001722947, "samples": 8, "validation_seconds": 0.061999999976251274}
+TEST {"MPJPE_xy_px": 214.3539148943349, "PA_MPJPE_xy_px": 56.590617288849586, "velocity_xy_px_per_frame": null, "acceleration_xy_px_per_frame2": null, "MPJPE_xyz_px": null, "PA_MPJPE_xyz_px": null, "velocity_xyz_px_per_frame": null, "acceleration_xyz_px_per_frame2": null, "PCK20": 0.0, "R.Wrist_PCK20": 0.0, "L.Wrist_PCK20": 0.0, "PCK50": 0.0, "R.Wrist_PCK50": 0.0, "L.Wrist_PCK50": 0.0, "invalid_torso_frames": 0, "degenerate_gt_frames": 0}
+{"scenario": "baseline", "device": "cpu", "window": 1, "temporal_axis": "csi", "train_samples": 8, "frames_per_batch": 4, "resume_epoch": 0, "resume_batch": 0}
+epoch=1/1 batch=1/2 step=1 loss=0.00262447 grad_norm=0.98117 elapsed_s=0.1
+Stopped at --max-steps; resume from last.pt with the same contract
+{"scenario": "baseline", "device": "cpu", "window": 1, "temporal_axis": "csi", "train_samples": 8, "frames_per_batch": 4, "resume_epoch": 0, "resume_batch": 1}
+{"epoch": 1, "global_step": 2, "lr": 0.001, "train_loss": 0.0022628414444625378, "L_mse": 0.0022628414444625378, "L_bone": 0.0, "L_smooth": 0.0, "L_sym": 0.0, "MPJPE_xy_px": 211.56376934436727, "PA_MPJPE_xy_px": 56.59061769055582, "velocity_xy_px_per_frame": null, "acceleration_xy_px_per_frame2": null, "MPJPE_xyz_px": null, "PA_MPJPE_xyz_px": null, "velocity_xyz_px_per_frame": null, "acceleration_xyz_px_per_frame2": null, "PCK20": 0.0, "R.Wrist_PCK20": 0.0, "L.Wrist_PCK20": 0.0, "PCK50": 0.0, "R.Wrist_PCK50": 0.0, "L.Wrist_PCK50": 0.0, "invalid_torso_frames": 0, "degenerate_gt_frames": 0}
+TIMING {"epoch": 1, "starting_batch": 1, "data_seconds": 0.01600000000325963, "train_seconds": 0.07800000003771856, "checkpoint_seconds": 0.1720000000204891, "samples": 4, "validation_seconds": 0.01600000000325963}
+TEST {"MPJPE_xy_px": 214.3539148943349, "PA_MPJPE_xy_px": 56.590617288849586, "velocity_xy_px_per_frame": null, "acceleration_xy_px_per_frame2": null, "MPJPE_xyz_px": null, "PA_MPJPE_xyz_px": null, "velocity_xyz_px_per_frame": null, "acceleration_xyz_px_per_frame2": null, "PCK20": 0.0, "R.Wrist_PCK20": 0.0, "L.Wrist_PCK20": 0.0, "PCK50": 0.0, "R.Wrist_PCK50": 0.0, "L.Wrist_PCK50": 0.0, "invalid_torso_frames": 0, "degenerate_gt_frames": 0}
+ok
+test_native_metrics_are_pixels_not_physical_mm (__main__.WiPoseTrialTests.test_native_metrics_are_pixels_not_physical_mm) ... ok
+test_pilot_subsets_and_root_detection_are_reproducible (__main__.WiPoseTrialTests.test_pilot_subsets_and_root_detection_are_reproducible) ... ok
+test_public_schema_and_ambiguous_vector_are_explicit (__main__.WiPoseTrialTests.test_public_schema_and_ambiguous_vector_are_explicit) ... ok
+test_reject_wrong_axis_order_and_negative_confidence (__main__.WiPoseTrialTests.test_reject_wrong_axis_order_and_negative_confidence) ... ok
+test_suite_exports_two_completed_results_and_resumes_without_retraining (__main__.WiPoseTrialTests.test_suite_exports_two_completed_results_and_resumes_without_retraining) ... ok
+test_v5_and_v73_match_upstream_csi_axes_and_labels (__main__.WiPoseTrialTests.test_v5_and_v73_match_upstream_csi_axes_and_labels) ... ok
+test_xy_baseline_matches_original_and_tcn_has_same_initial_backbone (__main__.WiPoseTrialTests.test_xy_baseline_matches_original_and_tcn_has_same_initial_backbone) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 24.388s
+
+OK

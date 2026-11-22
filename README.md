@@ -1,112 +1,97 @@
-# ST-DSKPose — thử nghiệm WiPose: Baseline và TCN
+# ST-DSKPose — WiPose với thông số công bố trong ECCV 2024
 
-Nhánh `experiment/wipose-baseline-tcn` chuẩn bị riêng cho việc train WiPose trên máy Windows có GPU. Nhánh này kế thừa `main` tại commit `3e7e2c8`.
+Nhánh `experiment/wipose-paper-protocol`, cập nhật 23/11/2026. Hai mô hình **Baseline HPEWiPoseModel** và **Baseline + CSI-TCN** được train từ đầu trong cùng điều kiện. Nhánh trước `experiment/wipose-baseline-tcn` lưu lại thử nghiệm AdamW 3 epoch.
 
-Hai mô hình được train lần lượt từ đầu, cùng dữ liệu, seed, hàm loss, optimizer và cách chọn checkpoint:
+## Cấu hình của lượt chính thức
 
-- **Baseline:** backbone `HPEWiPoseModel` từ mã nguồn HPE-Li, đầu ra XY.
-- **TCN:** cùng backbone/decoder, giữ 5 mẫu thời gian CSI trước khối TCN đa tỉ lệ, đầu ra XY.
+| Thành phần | Giá trị |
+|---|---|
+| Epoch | **50** |
+| Optimizer | **SGD, momentum 0.9** |
+| Learning rate / batch train | **0.001 / 32** |
+| Loss | MSE tọa độ XY, không confidence weighting và không chia thêm 32 |
+| Split | Gộp các file từ Train/Test, chia ngẫu nhiên **70% train / 30% test** |
+| Chọn checkpoint | **Epoch cuối**, theo lựa chọn của người dùng; không dùng test chọn model |
+| Precision | FP32, TF32 tắt |
+| Đầu ra | XY của 18 khớp; không dùng confidence làm Z |
 
-WiPose công khai có 18 khớp **XY + confidence**. Thử nghiệm này đánh giá **CSI-TCN trong một frame**, chưa phải Full ST-HPE với XYZ và kinematic loss, và chưa dùng chuỗi pose giữa các file.
+Nguồn: [mục 4 và Bảng 1, trang 8–9 của bài báo](https://www.ecva.net/papers/eccv_2024/papers_ECCV/papers/04496.pdf). Đây là thiết lập theo **các thông số được công bố**, có những lựa chọn triển khai phải ghi rõ: seed chia tập 41, LR cố định vì paper không mô tả lịch giảm, weight decay 0, MSE reduction mean và giữ scale XY × 0.001 của loader. Paper không công bố file-list/seed cụ thể hoặc chính sách validation; không tuyên bố tái lập chính xác bảng kết quả.
 
-## Tải nhánh về máy train
+**Metric của nhãn ảnh native là pixel**, không có căn cứ đổi thành mm vật lý. Xem [protocol và các khác biệt](docs/WIPOSE_PAPER_PROTOCOL.md). TCN gồm cả đổi pooling để giữ 5 mẫu CSI trong một frame; chưa phải pose-TCN hoặc mô hình XYZ/kinematic.
 
-Chạy trong CMD/Terminal tại nơi bạn muốn đặt code:
+## Tải code và kiểm tra
+
+Trên máy Windows bên Đài, mở CMD trong môi trường Python đã nhận RTX 3060:
 
 ```bat
-git clone --branch experiment/wipose-baseline-tcn --single-branch https://github.com/Lamchu1110/WiFi-based.git WiFi-based-wipose
-cd WiFi-based-wipose
-```
-
-Sử dụng môi trường Python đã kiểm tra nhận GPU. Máy bên Đài hiện đã báo PyTorch 2.7.0+cu118 và RTX 3060. Cài thêm phụ thuộc rồi kiểm tra lại:
-
-```bat
+git clone --branch experiment/wipose-paper-protocol --single-branch https://github.com/Lamchu1110/WiFi-based.git WiFi-based-paper
+cd WiFi-based-paper
 python -m pip install -r requirements-wipose-trial.txt
-python -c "import torch; print(torch.__version__); print(torch.cuda.is_available()); print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'CUDA unavailable')"
 python verify_package.py
-python test_wipose_trial.py
+python test_wipose_paper.py
 ```
 
-`test_wipose_trial.py` chạy kiểm thử CPU và dữ liệu tổng hợp, chưa cần dataset. Bằng chứng riêng của nhánh ở [validation/wipose_trial](validation/wipose_trial/README.md). Python 3.12 là phiên bản được dùng trên máy kiểm thử.
+Dùng PyTorch CUDA đang hoạt động trên máy. Bộ test mới đã chạy bằng Python 3.12 / PyTorch 2.7 CPU; bằng chứng GPU cục bộ và giới hạn xem [validation/wipose_paper](validation/wipose_paper/README.md). Dataset không nằm trong repository.
 
-## Chuẩn bị dữ liệu
+## Chạy lần lượt
 
-Giải nén `Wi-Pose.rar`, ví dụ:
+Thay đường dẫn ví dụ bằng nơi đã giải nén, chứa hai thư mục `Train` và `Test`.
 
-```text
-D:\Datasets\Wi-Pose\
-  Train\
-    bend_001-frame001.mat
-    ...
-  Test\
-    bend_009-frame001.mat
-    ...
-```
-
-Thay đường dẫn ví dụ bên dưới bằng thư mục thật trên máy của bạn. Loader hỗ trợ MAT thường và MATLAB 7.3/HDF5. Hai schema `CSI/SkeletonPoints` và `csi_serial/jointsVector` đều được hỗ trợ; vector phẳng có thứ tự không rõ ràng sẽ yêu cầu khai báo thay vì tự đoán.
-
-## Chạy theo thứ tự
-
-**1. Kiểm tra cấu trúc và một số mẫu dữ liệu:**
+Kiểm tra một số mẫu trước, chưa tạo cache toàn bộ:
 
 ```bat
-python run_wipose_comparison.py --dataset-root "D:\Datasets\Wi-Pose" --mode preflight
+python run_wipose_paper.py --dataset-root "D:\Datasets\Wi-Pose" --mode preflight --cache off
 ```
 
-**2. Chạy pilot trên tập nhỏ để kiểm tra GPU, forward/backward, đánh giá và checkpoint:**
+Pilot 1 epoch trên tối đa 256 train / 128 test để kiểm tra luồng thực thi; cache chỉ tạo cho các mẫu pilot:
 
 ```bat
-python run_wipose_comparison.py --dataset-root "D:\Datasets\Wi-Pose" --mode pilot
+python run_wipose_paper.py --dataset-root "D:\Datasets\Wi-Pose" --mode pilot
 ```
 
-Mặc định: 1 epoch, tối đa 256 mẫu train + 128 validation + 128 test, batch 64, FP32. Cả hai mô hình dùng đúng cùng các mẫu. PCK thấp hoặc bằng 0 ở lượt ngắn này không phải bằng chứng chất lượng cuối cùng.
-
-**3. Train thử 3 epoch trên toàn bộ dữ liệu của protocol đã chọn:**
+Chạy **50 epoch mỗi mô hình**, Baseline rồi TCN:
 
 ```bat
-python run_wipose_comparison.py --dataset-root "D:\Datasets\Wi-Pose" --mode train --epochs 3
+python run_wipose_paper.py --dataset-root "D:\Datasets\Wi-Pose" --mode train
 ```
 
-Sau khi kiểm tra ổn định, bắt đầu một suite mới cho 50 epoch:
+Lượt train đầu tiên tạo cache từ toàn bộ MAT: có thể mất nhiều phút, terminal in tiến độ mỗi 5.000 file. Các epoch và lượt chạy sau dùng lại cache. Với đủ 166.600 mẫu, split là **116.620 train / 49.980 test**, không có validation. Cache float32 CSI/nhãn khoảng 0.94 GB thập phân, chưa tính metadata; không cần đưa toàn bộ vào RAM/GPU.
+
+Trong quá trình train, `metrics.csv` ghi loss/LR; **không có PCK/MPJPE test theo từng epoch**. Test chỉ chạy sau epoch cuối. Không so loss này trực tiếp với loss của nhánh AdamW vì công thức loss đã khác.
+
+## Đọc kết quả và resume
+
+`runs_wipose_paper/train_<timestamp>/` chứa:
+
+- `protocol.json`, `suite_config.json`, `split.json`, `environment.json`: cấu hình, lựa chọn triển khai, danh sách mẫu và môi trường.
+- `baseline/`, `tcn/`: `train.log`, `metrics.csv`, `last.pt`, `final.pt`, `test_metrics.json`, `performance.jsonl`, `test_timing.json`.
+- `comparison.csv/json`: MPJPE, PA-MPJPE, PCK20/PCK50, PCK hai cổ tay, chênh lệch TCN − Baseline.
+- `suite.log`, `status.json`: tiến độ và lỗi.
+
+`final.pt` là checkpoint cuối, không gọi là checkpoint “tốt nhất” theo test. Mỗi model được đánh giá trên cùng test. Chỉ so hai dòng khi suite có trạng thái `complete`.
 
 ```bat
-python run_wipose_comparison.py --dataset-root "D:\Datasets\Wi-Pose" --mode train --epochs 50
+python run_wipose_paper.py --resume-suite "D:\WiFi-based-paper\runs_wipose_paper\train_TIMESTAMP"
 ```
 
-Nếu thiếu VRAM, dùng cùng `--batch-size 32 --eval-batch-size 16` cho cả cặp mô hình trong một suite mới. Ghi rõ thay đổi batch so với cấu hình 64 của script WiPose nguồn.
+Resume tự đọc cấu hình, không train lại model đã hoàn thành. Có thể thêm `--workers 2` hoặc `--device cuda`; không thay epoch/split/loss. **Không resume các checkpoint AdamW 3 epoch vào protocol mới.**
 
-## Kết quả và tiếp tục khi bị gián đoạn
+## Tăng tốc mà vẫn kiểm tra tính tương đương
 
-Mỗi lệnh tạo một thư mục riêng trong `runs_wipose_trial/`:
+- Cache mmap lưu đúng tensor float32 của loader gốc; có checksum và từ chối cache hỏng.
+- DataLoader giữ thứ tự mẫu; hỗ trợ `--workers 2` hoặc `4` và persistent workers. Mặc định 0 vì cache đã rất nhẹ và Windows có chi phí spawn; đo trên máy thật trước khi chọn.
+- Gom kiểm tra finite và chuyển số liệu từ GPU, giảm đồng bộ CPU/GPU; vẫn kiểm tra loss/gradient/parameter và lưu checkpoint atomic.
+- `performance.jsonl` tách thời gian chờ dữ liệu, train và ghi checkpoint. Khi resume giữa epoch, dòng timing chỉ tính phần chạy từ vị trí resume.
+- Giữ batch 32. Không tăng batch, đổi loss hoặc bật AMP để báo một con số tốc độ “cùng cấu hình”.
+- `--precision bf16` là tùy chọn thử nghiệm nếu GPU hỗ trợ; mặc định FP32. BF16 được ghi là biến thể số học, cần kiểm tra riêng trước khi dùng.
+- `--deterministic` giảm nguồn ngẫu nhiên trên cùng môi trường, có thể chậm hơn; không bảo đảm bit-exact giữa thiết bị/phiên bản khác nhau.
 
-```text
-train_<timestamp>/
-  suite_config.json, environment.json, suite.log, split.json, status.json
-  comparison.csv, comparison.json
-  baseline/
-    config.json, train.log, metrics.csv, best.pt, last.pt, test_metrics.json
-  tcn/
-    config.json, train.log, metrics.csv, best.pt, last.pt, test_metrics.json
-```
-
-- `comparison.csv`: MPJPE, PA-MPJPE, PCK20/PCK50 và PCK của hai cổ tay, lấy từ **best validation checkpoint** của từng mô hình trên cùng tập test.
-- Với nhãn ảnh native: **MPJPE/PA-MPJPE là pixel**, không phải khoảng cách vật lý mm. Loader giữ phép nhân XY × 0.001 của upstream để train; metric đổi lại pixel.
-- PCK20/PCK50 là phần trăm khớp trong ngưỡng 0.2/0.5 chiều dài torso, không phải ngưỡng 20/50 pixel.
-- `comparison.json` ghi thêm chênh lệch TCN trừ Baseline và trạng thái complete/partial.
-- Preflight chỉ tạo log/metadata kiểm tra; không có metric train/test hay checkpoint model.
-
-Tiếp tục đúng suite đã chạy, thay đường dẫn bằng thư mục thực tế:
+Đo riêng đọc dữ liệu, không bao gồm GPU train, với cùng các mẫu:
 
 ```bat
-python run_wipose_comparison.py --resume-suite "D:\WiFi-based-wipose\runs_wipose_trial\train_TIMESTAMP"
+python benchmark_wipose_io.py --dataset-root "D:\Datasets\Wi-Pose"
 ```
 
-Lệnh tự đọc cấu hình cũ, giữ kết quả mô hình đã hoàn thành và tiếp tục mô hình còn lại. Chỉ có thể thêm `--device` khi cần đổi thiết bị. Đổi epochs, batch, objective hoặc dữ liệu phải bắt đầu suite mới. Không resume checkpoint main/v2 cũ vào nhánh này.
+Benchmark kiểm tra tensor raw/cache bằng nhau trước khi đo; kết quả ở `logs/wipose_io_benchmark.json`. Mức tăng tốc đọc dữ liệu không đồng nghĩa mức tăng tốc toàn bộ train.
 
-## Phạm vi so sánh
-
-Recipe mặc định theo `att_wipose.py`: AdamW lr=0.001, weight_decay=0.01, batch=64, loss `MSE(conf*pred, conf*target)/32`, chọn best theo PCK20. Dùng FP32 và tắt clipping để giữ gần recipe nguồn. Có `--objective normalized` nếu muốn so cả hai mô hình bằng confidence-weighted MSE chuẩn hóa; đây là thí nghiệm khác.
-
-Đây là **so sánh có kiểm soát với backbone từ repository**, không tuyên bố đã tái lập chính xác bảng kết quả ECCV. Chia Test thành validation/test 50/50 theo seed 41 như script nguồn; sắp xếp filename ổn định; metric được tính lại mỗi epoch và có kiểm tra visibility/pose suy biến. Việc chia theo file chưa bảo đảm tách sequence/subject. TCN đồng thời thay cách pooling để giữ T=5, nên kết quả là đóng góp của cả thay đổi này và khối TCN.
-
-Xem [chi tiết recipe và những khác biệt](docs/WIPOSE_TRIAL.md), [nguồn tác giả](docs/UPSTREAM_README.md), và [hướng dẫn v2 chung](docs/README_V2.md). Các hướng dẫn chung v2 không thay thế đơn vị và recipe riêng của nhánh thử WiPose này.
+Nhánh cũ vẫn có script `run_wipose_comparison.py`, nhưng script đó dùng **AdamW / batch 64 / split theo archive**, không phải lệnh cho protocol mới. Chi tiết lịch sử ở [WIPOSE_TRIAL.md](docs/WIPOSE_TRIAL.md).
