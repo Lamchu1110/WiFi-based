@@ -24,4 +24,6 @@ torchinductor_*/
 runs_preflight/
 runs_wipose_trial/
 runs_wipose_paper/
+runs_wipose_v3/
+ablation_archive/
 *.rar

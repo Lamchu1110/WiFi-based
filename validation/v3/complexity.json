@@ -1,0 +1,65 @@
+{
+  "input_shape": [
+    1,
+    9,
+    30,
+    5
+  ],
+  "units": "one pose",
+  "limitations": [
+    "THOP counts supported modules; functional operations are not fully counted",
+    "registered parameters include unused inherited modules",
+    "params_connected_to_loss includes gate-masked parameters with zero-valued gradients"
+  ],
+  "rows": [
+    {
+      "variant": "baseline_legacy",
+      "all_registered_params": 6174484,
+      "params_connected_to_loss": 3315092,
+      "thop_macs": 58419072.0,
+      "estimated_flops_2macs": 116838144.0
+    },
+    {
+      "variant": "pooling_legacy",
+      "all_registered_params": 6174484,
+      "params_connected_to_loss": 3315092,
+      "thop_macs": 152617856.0,
+      "estimated_flops_2macs": 305235712.0
+    },
+    {
+      "variant": "tcn_legacy",
+      "all_registered_params": 6423764,
+      "params_connected_to_loss": 3564372,
+      "thop_macs": 153867776.0,
+      "estimated_flops_2macs": 307735552.0
+    },
+    {
+      "variant": "baseline_corrected",
+      "all_registered_params": 6174484,
+      "params_connected_to_loss": 3315092,
+      "thop_macs": 58419072.0,
+      "estimated_flops_2macs": 116838144.0
+    },
+    {
+      "variant": "pooling_corrected",
+      "all_registered_params": 6174484,
+      "params_connected_to_loss": 3315092,
+      "thop_macs": 152617856.0,
+      "estimated_flops_2macs": 305235712.0
+    },
+    {
+      "variant": "tcn_corrected",
+      "all_registered_params": 6423764,
+      "params_connected_to_loss": 3564372,
+      "thop_macs": 153867776.0,
+      "estimated_flops_2macs": 307735552.0
+    },
+    {
+      "variant": "tcn_gated",
+      "all_registered_params": 6183253,
+      "params_connected_to_loss": 3323861,
+      "thop_macs": 59705472.0,
+      "estimated_flops_2macs": 119410944.0
+    }
+  ]
+}

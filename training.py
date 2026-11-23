@@ -43,17 +43,27 @@ def pose_objective(pred,gt,target_format,legacy=False,objective_mode=None):
     return torch.nn.functional.mse_loss(pred,target)
 
 
-def evaluate(model,dataset,device,name,target_format,batch_size,coordinate_unit='m',workers=0,metric_visibility='visible'):
+def evaluate(model,dataset,device,name,target_format,batch_size,coordinate_unit='m',workers=0,metric_visibility='visible',prediction_path=None):
     model.eval()
     metrics = PoseMetrics(name,model.direct_3d,coordinate_unit)
     generator = torch.Generator().manual_seed(123456)
     loader = make_loader(dataset,batch_size,device,workers,generator=generator)
+    predictions, targets = [], []
     with torch.inference_mode():
         for batch in loader:
             x = batch['input_wifi-csi'].float().to(device,non_blocking=True)
             gt = batch['output'].float()
             prediction = model(x)[0].float().cpu().numpy()
             metrics.update(prediction,gt.numpy(),gt[...,2].numpy() if target_format=='xy_conf' and metric_visibility=='visible' else None)
+            if prediction_path is not None:
+                predictions.append(prediction)
+                targets.append(gt.numpy())
+    if prediction_path is not None:
+        # Evaluation loader is ordered; split.json records the corresponding sample IDs.
+        path = prediction_path.with_name(prediction_path.name+'.tmp')
+        with path.open('wb') as stream:
+            np.savez_compressed(stream,prediction=np.concatenate(predictions),target=np.concatenate(targets))
+        path.replace(prediction_path)
     return metrics.result()
 
 
@@ -74,6 +84,12 @@ def fit(args,name,scenario,bundle,out):
     selection_policy = getattr(args,'selection_policy','validation')
     objective_mode = getattr(args,'objective_mode',None)
     metric_visibility = getattr(args,'metric_visibility','visible')
+    evaluate_test = getattr(args,'evaluate_test',True)
+    parameter_check_every = getattr(args,'parameter_check_every',1)
+    model_options = {key:getattr(args,key,default) for key,default in (
+        ('dsk_layout','legacy'),('pooling_mode','auto'),('temporal_block','legacy'))}
+    if parameter_check_every < 1:
+        raise ValueError('parameter_check_every must be positive')
     workers = getattr(args,'workers',0)
     if selection_policy not in ('validation','final') or workers < 0:
         raise ValueError('Invalid checkpoint selection policy or workers')
@@ -108,7 +124,7 @@ def fit(args,name,scenario,bundle,out):
             if not torch.cuda.is_bf16_supported():
                 raise ValueError('This GPU does not support BF16. Leave AMP off or explicitly pilot --amp-dtype float16.')
     contract = {
-        'architecture_version':2,'dataset':name,'scenario':scenario,'data_fingerprint':bundle.fingerprint,
+        'architecture_version':STHPE.architecture_version,'dataset':name,'scenario':scenario,'data_fingerprint':bundle.fingerprint,
         'target_format':bundle.target_format,'window':bundle.window,'batch_size':args.batch_size,
         'eval_batch_size':args.eval_batch_size,
         'seed':args.seed,'epochs':args.epochs,'lr':args.lr,'momentum':args.momentum,
@@ -119,6 +135,8 @@ def fit(args,name,scenario,bundle,out):
         'optimizer':optimizer_name,'schedule':schedule_name,'keep_last_batch':keep_last,
         'coordinate_unit':bundle.coordinate_unit,
         'selection_policy':selection_policy,'objective_mode':objective_mode,'metric_visibility':metric_visibility,
+        **model_options,'evaluate_test':evaluate_test,'parameter_check_every':parameter_check_every,
+        'source_fingerprint':getattr(args,'source_fingerprint',None),
     }
     if args.resume:
         checkpoint = torch.load(args.resume,map_location='cpu',weights_only=True)
@@ -134,7 +152,7 @@ def fit(args,name,scenario,bundle,out):
                 'causality':'noncausal window model; not an online/causal latency benchmark'}
     # Preflight and incompatible resume never overwrite a previous run's config/checkpoint.
     if args.preflight_only:
-        for dataset in (bundle.train,bundle.val,bundle.test):
+        for dataset in (bundle.train,bundle.val,bundle.test if evaluate_test else None):
             if dataset is None:
                 continue
             for index in (0,len(dataset)-1):
@@ -145,7 +163,7 @@ def fit(args,name,scenario,bundle,out):
         print(f'Preflight PASS: train={len(bundle.train)} val={metadata["val_samples"]} test={len(bundle.test)} frames/batch={args.batch_size*bundle.window}',flush=True)
         return 'preflight_pass'
     seed_all(args.seed,args.deterministic)
-    model = STHPE(name,use_tcn=use_tcn,direct_3d=direct_3d,temporal_axis=temporal_axis).to(device)
+    model = STHPE(name,use_tcn=use_tcn,direct_3d=direct_3d,temporal_axis=temporal_axis,**model_options).to(device)
     criterion = KinematicPoseLoss(name,args.lambda_bone,args.lambda_smooth,args.lambda_sym,
                                   args.warmup_epochs,args.symmetry_mode).to(device)
     if optimizer_name == 'adamw':
@@ -163,6 +181,8 @@ def fit(args,name,scenario,bundle,out):
         lr_scale = lambda epoch: max(0.0,1.0-max(0,epoch+1-20)/31.0)
     elif schedule_name == 'v2':
         lr_scale = lambda epoch: 1.0 if epoch < plateau else max(0.01,1-(epoch-plateau+1)*0.99/max(1,args.epochs-plateau))
+    elif schedule_name == 'cosine':
+        lr_scale = lambda epoch: 0.01 + 0.99 * (1+math.cos(math.pi*min(epoch,args.epochs)/args.epochs))/2
     else:
         raise ValueError(f'Unsupported schedule: {schedule_name}')
     scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer,lr_scale)
@@ -186,7 +206,12 @@ def fit(args,name,scenario,bundle,out):
                       'train_samples':len(bundle.train),'frames_per_batch':args.batch_size*bundle.window,
                       'resume_epoch':cursor['epoch'],'resume_batch':cursor['next_batch']}),flush=True)
 
+    def finite_parameters():
+        if not torch.stack([torch.isfinite(p).all() for p in model.parameters()]).all():
+            raise FloatingPointError('Optimizer produced nonfinite parameters; previous checkpoint preserved')
+
     def save():
+        finite_parameters()
         atomic_save(out/'last.pt',{'format_version':2,'contract':contract,'model':model.state_dict(),
                     'optimizer':optimizer.state_dict(),'scheduler':scheduler.state_dict(),'scaler':scaler.state_dict(),
                     'cursor':cursor,'best_model':best_model,'rng':rng_state()})
@@ -250,8 +275,8 @@ def fit(args,name,scenario,bundle,out):
                                                       error_if_nonfinite=True)
                 scaler.step(optimizer)
                 scaler.update()
-                if not torch.stack([torch.isfinite(p).all() for p in model.parameters()]).all():
-                    raise FloatingPointError('Optimizer produced nonfinite parameters; previous checkpoint preserved')
+                if (cursor['global_step']+1) % parameter_check_every == 0:
+                    finite_parameters()
                 size = len(x)
                 values = torch.stack([loss.detach(),*[v.detach() for v in parts.values()]]).cpu().tolist()
                 cursor['loss_sum'] += values[0]*size
@@ -280,6 +305,8 @@ def fit(args,name,scenario,bundle,out):
             result = {'epoch':epoch+1,'global_step':cursor['global_step'],'lr':optimizer.param_groups[0]['lr'],
                       'train_loss':cursor['loss_sum']/cursor['samples'],
                       **{key:value/cursor['samples'] for key,value in cursor['components'].items()},**metrics}
+            if hasattr(model.tcn,'alpha'):
+                result['tcn_alpha'] = float(model.tcn.alpha.detach())
             if selection_policy=='validation':
                 score = result.get(args.select_metric)
                 if score is None or not math.isfinite(score):
@@ -326,8 +353,20 @@ def fit(args,name,scenario,bundle,out):
         'best_epoch':cursor['best_epoch'],'best_score':cursor['best_score']}
     atomic_save(out/('final.pt' if selection_policy=='final' else 'best.pt'),
                 {'format_version':2,'contract':contract,'model':best_model,**selected})
+    if not evaluate_test:
+        if bundle.val is None:
+            raise ValueError('Development evaluation requires a validation set')
+        prediction_path = out/'validation_predictions.npz' if getattr(args,'save_predictions',False) else None
+        metrics = evaluate(model,bundle.val,device,name,bundle.target_format,args.eval_batch_size,
+                           bundle.coordinate_unit,workers,metric_visibility,prediction_path)
+        atomic_json(out/'validation_metrics.json',{**selected,'evaluation_split':'validation',**metrics})
+        print('VALIDATION '+json.dumps(metrics,allow_nan=False),flush=True)
+        return 'complete'
     test_start = time.perf_counter()
-    metrics = evaluate(model,bundle.test,device,name,bundle.target_format,args.eval_batch_size,bundle.coordinate_unit,workers,metric_visibility)
+    if getattr(args,'save_predictions',False):
+        metrics = evaluate(model,bundle.test,device,name,bundle.target_format,args.eval_batch_size,bundle.coordinate_unit,workers,metric_visibility,out/'test_predictions.npz')
+    else:
+        metrics = evaluate(model,bundle.test,device,name,bundle.target_format,args.eval_batch_size,bundle.coordinate_unit,workers,metric_visibility)
     atomic_json(out/'test_timing.json',{'seconds':time.perf_counter()-test_start,'samples':len(bundle.test)})
     metric_metadata = selected if selection_policy=='final' else {'best_epoch':cursor['best_epoch']}
     atomic_json(out/'test_metrics.json',{**metric_metadata,**metrics})

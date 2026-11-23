@@ -7,7 +7,7 @@ from .utils import ScaledDotProductAttention
 
 
 class SKConv(nn.Module):
-    def __init__(self, input_dim, output_dim, dim1, dim2, pool_dim,  M=4, G=1, r=4, stride=1 ,L=32):
+    def __init__(self, input_dim, output_dim, dim1, dim2, pool_dim,  M=4, G=1, r=4, stride=1 ,L=32, layout_mode='legacy'):
         """ Constructor
         Args:
             features: input channel dimensionality.
@@ -18,6 +18,9 @@ class SKConv(nn.Module):
             L: the minimum dim of the vector z in paper, default 32.2
         """
         super(SKConv, self).__init__()
+        if layout_mode not in ('legacy', 'corrected'):
+            raise ValueError('layout_mode must be legacy or corrected')
+        self.layout_mode = layout_mode
 
         hidden_dim = int(input_dim/r)
         self.dim1 = dim1
@@ -74,6 +77,33 @@ class SKConv(nn.Module):
         self.softmax = nn.Softmax(dim=1)
 
     def forward(self, x):
+        if self.layout_mode == 'corrected':
+            return self.forward_corrected(x)
+        return self.forward_legacy(x)
+
+    def forward_corrected(self, x):
+        # Keep the physical position of every element: [B,M,C,F,T].
+        feats = torch.stack([conv(x) for conv in self.convs], dim=1)
+        batch, _, channels, frequency, time = feats.shape
+        if frequency != self.dim1:
+            raise ValueError(f'DSK frequency axis: expected {self.dim1}, got {frequency}')
+        summed = feats.sum(dim=1)
+        if self.pool_dim == 'freq-chan':
+            encoded = self.fc(summed.mean(dim=3))  # [B,C/r,F]
+            attention = torch.stack([fc(encoded) for fc in self.fcs], dim=1).unsqueeze(-1)
+        elif self.pool_dim == 'freq':
+            encoded = self.fc(summed.mean(dim=(1, 3))).unsqueeze(-1)
+            attention = torch.stack([fc(encoded) for fc in self.fcs], dim=1).unsqueeze(2)
+        elif self.pool_dim == 'freq-time':
+            if time != self.dim2:
+                raise ValueError(f'DSK time axis: expected {self.dim2}, got {time}')
+            encoded = self.fc(summed.mean(dim=1).reshape(batch, frequency*time)).unsqueeze(-1)
+            attention = torch.stack([fc(encoded) for fc in self.fcs], dim=1).reshape(batch, self.M, 1, frequency, time)
+        else:
+            raise ValueError(f'Unsupported DSK attention: {self.pool_dim}')
+        return (feats * self.softmax(attention)).sum(dim=1)
+
+    def forward_legacy(self, x):
 
         batch_size = x.shape[0]
 
