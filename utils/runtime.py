@@ -2,6 +2,7 @@
 import json
 import os
 import random
+import time
 from pathlib import Path
 
 import numpy as np
@@ -23,6 +24,22 @@ class Tee:
         self.file.flush()
 
 
+def replace_with_retry(source, target, attempts=6):
+    """Preserve atomic replacement across short Windows sharing/permission locks.
+
+    Never delete the old target or relax permissions. Persistent failures still
+    propagate, with the completed temporary file retained for diagnosis.
+    """
+    for attempt in range(attempts):
+        try:
+            os.replace(source,target)
+            return
+        except PermissionError as exc:
+            if getattr(exc,'winerror',None) not in (5,32,33) or attempt+1==attempts:
+                raise
+            time.sleep(.05 * 2**attempt)
+
+
 def atomic_json(path,data):
     path = Path(path)
     temporary = path.with_name(path.name+'.tmp')
@@ -30,7 +47,7 @@ def atomic_json(path,data):
         json.dump(data,file,indent=2,default=str,allow_nan=False)
         file.flush()
         os.fsync(file.fileno())
-    os.replace(temporary,path)
+    replace_with_retry(temporary,path)
 
 
 def atomic_save(path,data):
@@ -40,7 +57,7 @@ def atomic_save(path,data):
         torch.save(data,file)
         file.flush()
         os.fsync(file.fileno())
-    os.replace(temporary,path)
+    replace_with_retry(temporary,path)
 
 
 def rng_state():

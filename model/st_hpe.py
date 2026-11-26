@@ -8,12 +8,12 @@ import torch
 from torch import nn
 from .HPE_no_denoiser import OriginalHPE
 from .HPE_Wipose import HPEWiPoseModel
-from .tcn_block import MultiScaleDilatedTCN, ShortGatedTCN
+from .tcn_block import MultiScaleDilatedTCN, ShortGatedTCN, ShortResidualTCN
 from .utils.SKNet import SKConv
 
 
 class STHPE(nn.Module):
-    architecture_version = 3
+    architecture_version = 4
 
     def __init__(self, dataset="mmfi", use_tcn=True, direct_3d=True, temporal_axis="csi",
                  dsk_layout='legacy', pooling_mode='auto', temporal_block='legacy'):
@@ -29,10 +29,10 @@ class STHPE(nn.Module):
         self.use_tcn = use_tcn
         if dsk_layout not in ('legacy', 'corrected') or pooling_mode not in ('auto', 'standard', 'preserve_csi'):
             raise ValueError('Invalid DSK layout or pooling mode')
-        if temporal_block not in ('legacy', 'short_gated'):
+        if temporal_block not in ('legacy', 'short_gated', 'short_residual'):
             raise ValueError('Invalid temporal block')
-        if temporal_block == 'short_gated' and (dataset != 'wipose' or temporal_axis != 'csi'):
-            raise ValueError('Short gated TCN currently supports native WiPose CSI only')
+        if temporal_block in ('short_gated', 'short_residual') and (dataset != 'wipose' or temporal_axis != 'csi'):
+            raise ValueError('Short TCN currently supports native WiPose CSI only')
         self.dsk_layout, self.temporal_block = dsk_layout, temporal_block
         self.pooling_mode = pooling_mode
         if pooling_mode == 'auto':
@@ -51,7 +51,14 @@ class STHPE(nn.Module):
             old = self.backbone.regression.fc3
             self.backbone.regression.fc3 = nn.Linear(old.in_features, self.joints * 3)
         # Keep backbone/decoder initialization identical across XYZ ablations.
-        self.tcn = (ShortGatedTCN(64) if temporal_block == 'short_gated' else MultiScaleDilatedTCN(channels)) if use_tcn else nn.Identity()
+        if not use_tcn:
+            self.tcn = nn.Identity()
+        elif temporal_block == 'short_gated':
+            self.tcn = ShortGatedTCN(64)
+        elif temporal_block == 'short_residual':
+            self.tcn = ShortResidualTCN(64)
+        else:
+            self.tcn = MultiScaleDilatedTCN(channels)
 
     def forward(self, x):
         start = time.perf_counter()
@@ -70,7 +77,7 @@ class STHPE(nn.Module):
         keep_csi = self.pooling_mode == 'preserve_csi'
         pool_size = (2, 1) if keep_csi else (2, 2)
         x = self.backbone.skunit1(x)
-        if self.use_tcn and self.temporal_block == 'short_gated':
+        if self.use_tcn and self.temporal_block in ('short_gated', 'short_residual'):
             x = self.tcn(x)
         x = pool(x, pool_size)
         x = self.backbone.skunit2(x)

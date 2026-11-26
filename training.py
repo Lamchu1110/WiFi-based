@@ -12,8 +12,9 @@ import torch
 from model import STHPE
 from utils.losses import KinematicPoseLoss
 from utils.metrics import PoseMetrics
-from utils.runtime import atomic_json,atomic_save,rng_state,restore_rng
+from utils.runtime import atomic_json,atomic_save,rng_state,restore_rng,replace_with_retry
 from utils.data_loading import OrderedSampler,make_loader
+from utils.trainability import TemporalMonitor
 
 
 SCENARIOS = {
@@ -63,7 +64,7 @@ def evaluate(model,dataset,device,name,target_format,batch_size,coordinate_unit=
         path = prediction_path.with_name(prediction_path.name+'.tmp')
         with path.open('wb') as stream:
             np.savez_compressed(stream,prediction=np.concatenate(predictions),target=np.concatenate(targets))
-        path.replace(prediction_path)
+        replace_with_retry(path,prediction_path)
     return metrics.result()
 
 
@@ -86,6 +87,9 @@ def fit(args,name,scenario,bundle,out):
     metric_visibility = getattr(args,'metric_visibility','visible')
     evaluate_test = getattr(args,'evaluate_test',True)
     parameter_check_every = getattr(args,'parameter_check_every',1)
+    trainability_every = getattr(args,'trainability_every',0)
+    if trainability_every < 0:
+        raise ValueError('trainability_every must be nonnegative')
     model_options = {key:getattr(args,key,default) for key,default in (
         ('dsk_layout','legacy'),('pooling_mode','auto'),('temporal_block','legacy'))}
     if parameter_check_every < 1:
@@ -137,6 +141,7 @@ def fit(args,name,scenario,bundle,out):
         'selection_policy':selection_policy,'objective_mode':objective_mode,'metric_visibility':metric_visibility,
         **model_options,'evaluate_test':evaluate_test,'parameter_check_every':parameter_check_every,
         'source_fingerprint':getattr(args,'source_fingerprint',None),
+        'trainability_every':trainability_every,
     }
     if args.resume:
         checkpoint = torch.load(args.resume,map_location='cpu',weights_only=True)
@@ -164,6 +169,7 @@ def fit(args,name,scenario,bundle,out):
         return 'preflight_pass'
     seed_all(args.seed,args.deterministic)
     model = STHPE(name,use_tcn=use_tcn,direct_3d=direct_3d,temporal_axis=temporal_axis,**model_options).to(device)
+    monitor = TemporalMonitor(model.tcn,out/'trainability.jsonl',trainability_every)
     criterion = KinematicPoseLoss(name,args.lambda_bone,args.lambda_smooth,args.lambda_sym,
                                   args.warmup_epochs,args.symmetry_mode).to(device)
     if optimizer_name == 'adamw':
@@ -259,6 +265,7 @@ def fit(args,name,scenario,bundle,out):
                 if not torch.isfinite(x).all() or not torch.isfinite(gt).all():
                     raise ValueError('Nonfinite training sample')
                 optimizer.zero_grad(set_to_none=True)
+                monitor.begin(cursor['global_step']+1,epoch+1,cursor['next_batch']+1==batch_count)
                 with torch.autocast(device_type=device.type,enabled=args.amp,dtype=amp_dtype):
                     prediction = model(x)[0]
                 if use_kinematic:
@@ -273,8 +280,10 @@ def fit(args,name,scenario,bundle,out):
                 scaler.unscale_(optimizer)
                 norm = torch.nn.utils.clip_grad_norm_(model.parameters(),args.grad_clip if args.grad_clip else math.inf,
                                                       error_if_nonfinite=True)
+                monitor.gradients()
                 scaler.step(optimizer)
                 scaler.update()
+                monitor.finish()
                 if (cursor['global_step']+1) % parameter_check_every == 0:
                     finite_parameters()
                 size = len(x)
@@ -343,6 +352,8 @@ def fit(args,name,scenario,bundle,out):
             save()
         print('Interrupted. Last atomic checkpoint remains available; an in-flight optimizer step is never saved.',flush=True)
         return 'interrupted'
+    finally:
+        monitor.close()
     if selection_policy=='final':
         best_model = {key:value.detach().cpu().clone() for key,value in model.state_dict().items()}
     if best_model is None:

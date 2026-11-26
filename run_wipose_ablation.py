@@ -1,4 +1,4 @@
-"""WiPose v3: controlled DSK/TCN ablations and source-preserving run suites."""
+"""WiPose v4: isolate DSK and temporal trainability; preserve the original baseline."""
 import argparse
 import csv
 import gc
@@ -19,7 +19,7 @@ import torch
 from run_wipose_paper import settings as paper_settings
 from training import fit
 from utils.experiment_archive import record_source
-from utils.runtime import RunLock, Tee, atomic_json
+from utils.runtime import RunLock, Tee, atomic_json, replace_with_retry
 from wipose.ablation_config import VARIANTS, DEFAULT_VARIANTS, COMPARISONS
 from wipose.ablation_data import ablation_bundle
 from dataset_lib.training_data import digest
@@ -58,8 +58,10 @@ def make_parser():
     p.add_argument('--checkpoint-every',type=int,default=500)
     p.add_argument('--parameter-check-every',type=int,default=100,
                    help='Check parameter finiteness every N steps and always before checkpointing; loss/gradients checked each step')
+    p.add_argument('--trainability-every',type=int,default=100,
+                   help='Sample TCN gradients/actual updates every N steps, first five and epoch end; 0 disables')
     p.add_argument('--max-steps',type=int,default=0)
-    p.add_argument('--output',type=Path,default=Path(__file__).resolve().parent/'runs_wipose_v3')
+    p.add_argument('--output',type=Path,default=Path(__file__).resolve().parent/'runs_wipose_v4')
     p.add_argument('--resume-suite',type=Path)
     return p
 
@@ -67,7 +69,7 @@ def make_parser():
 def settings(args,variant,seed,resume=None):
     args.seed = seed  # paper_settings only supplies shared, explicit defaults.
     value = paper_settings(args,resume)
-    for key in ('batch_size','optimizer','lr','momentum','weight_decay','schedule','grad_clip','parameter_check_every'):
+    for key in ('batch_size','optimizer','lr','momentum','weight_decay','schedule','grad_clip','parameter_check_every','trainability_every'):
         setattr(value,key,getattr(args,key))
     _,value.dsk_layout,value.pooling_mode,value.temporal_block = VARIANTS[variant]
     value.evaluate_test = args.stage == 'final'
@@ -80,7 +82,7 @@ def settings(args,variant,seed,resume=None):
 
 
 def protocol(args):
-    return {'version':3,'stage':args.stage,'mode':args.mode,
+    return {'version':4,'stage':args.stage,'mode':args.mode,
         'outer_split':'70/30 with seed 41 by default, or imported exact IDs',
         'inner_split':f'{args.validation_fraction:.1%} of outer training set' if args.stage=='develop' else None,
         'selection':'best inner-validation MPJPE; test never evaluated' if args.stage=='develop' else 'fixed final epoch; test once per run',
@@ -89,7 +91,8 @@ def protocol(args):
         'metrics':'all 18 joints; torso-normalized PCK; PA independently per pose',
         'architecture_controls':{name:dict(zip(('scenario','dsk_layout','pooling_mode','temporal_block'),VARIANTS[name])) for name in args.variants},
         'valid_pairwise_comparisons':[x for x in COMPARISONS if x[0] in args.variants and x[1] in args.variants],
-        'initialization':'same backbone initialization for a given seed; gate=0 gives identical baseline output',
+        'initialization':'same backbone initialization for a given seed; short_gated alpha=0 or short_residual zero output projection matches the no-TCN model with the SAME DSK layout and pooling, not necessarily original HPE-Li',
+        'trainability_log':'sampled actual train gradients, parameter updates and residual/input; append-only attempt IDs on resume',
         'loss_extensions':'none in this experiment; isolates architecture',
         'precision':args.precision,'tf32':False,
         'limits':['random-frame evaluation, not cross-subject or ordered pose sequences',
@@ -149,7 +152,7 @@ def compare(suite):
         temporary=suite/'comparison.csv.tmp'
         with temporary.open('w',encoding='utf-8-sig',newline='') as stream:
             writer=csv.DictWriter(stream,fieldnames=list(rows[0]));writer.writeheader();writer.writerows(rows)
-        temporary.replace(suite/'comparison.csv')
+        replace_with_retry(temporary,suite/'comparison.csv')
         print(f'COMPARISON ({evaluation}; pixel errors, PCK in %)',flush=True)
         for row in rows:
             print(f'{row["variant"]:20} seed={row["seed"]} epoch={row["selected_epoch"]} '+
@@ -172,8 +175,8 @@ def main(argv=None):
         device=args.device
         workers=args.workers if any(a.split('=')[0]=='--workers' for a in argv) else None
         saved=json.loads((suite/'suite_config.json').read_text(encoding='utf-8'))
-        if saved.pop('ablation_suite_version',None)!=3:
-            parser.error('This is not a v3 ablation suite; use its original branch to resume an old experiment')
+        if saved.pop('ablation_suite_version',None)!=4:
+            parser.error('This is not a v4 ablation suite; use its original branch to resume an old experiment')
         args=argparse.Namespace(**saved)
         args.resume_suite=suite
         if device is not None:args.device=device
@@ -190,7 +193,7 @@ def main(argv=None):
         if value is not None:setattr(args,field,Path(value).resolve())
     if (min(args.epochs,args.batch_size,args.eval_batch_size,args.pilot_train_samples,args.pilot_eval_samples,args.checkpoint_every,args.parameter_check_every)<1
             or args.batch_size < 2
-            or min(args.workers,args.max_steps,args.split_seed,args.validation_seed,*args.seeds)<0
+            or min(args.workers,args.max_steps,args.split_seed,args.validation_seed,args.trainability_every,*args.seeds)<0
             or len(set(args.seeds))!=len(args.seeds) or len(set(args.variants))!=len(args.variants)):
         parser.error('Invalid counts, seeds, or duplicate variants')
     numeric=(args.lr,args.weight_decay,args.momentum,args.grad_clip,args.validation_fraction)
@@ -205,7 +208,7 @@ def main(argv=None):
             print(f'Suite: {suite}',flush=True)
             try:
                 if not resume:
-                    atomic_json(suite/'suite_config.json',{'ablation_suite_version':3,**vars(args)})
+                    atomic_json(suite/'suite_config.json',{'ablation_suite_version':4,**vars(args)})
                     atomic_json(suite/'protocol.json',protocol(args))
                     atomic_json(suite/'command.json',{'argv':argv,'executable':sys.executable,'cwd':str(Path.cwd())})
                 args.source_fingerprint=record_source(Path(__file__).resolve().parent,suite,resume)

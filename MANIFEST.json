@@ -1,424 +1,345 @@
 {
-  "release": "ST-DSKPose-WiPose-v3-2026-11-23",
-  "base_commit": "f3af7adcfaca5e262eba4cbd7eb8785cc51e1ed9",
-  "source_project": "HPE-Li-ECCV2024",
+  "release": "ST-DSKPose-WiPose-v4-2026-11-26",
+  "base_commit": "c9c4e0f20f1e72099fc545866084abc5bedccd70",
+  "branch": "experiment/wipose-tcn-trainability-v4",
   "data_included": false,
   "trained_weights_included": false,
-  "checksum_scope": "source and repository operation docs; validation outputs excluded",
+  "checksum_scope": "source and repository operation docs; validation/run artifacts retained locally, not distributed",
   "files": [
     {
       "path": ".gitattributes",
-      "sha256": "ed306eb17a52cd8afb1d5d82504c85517a67f1cc43708147a1a7df1fb202b464",
-      "origin": "new_repository_file",
-      "source_sha256": null
+      "bytes": 84,
+      "sha256": "ed306eb17a52cd8afb1d5d82504c85517a67f1cc43708147a1a7df1fb202b464"
     },
     {
       "path": ".gitignore",
-      "sha256": "af18343d3fef831f8da9a03dae14f867240370468aee9deace9ea1ca97d659ce",
-      "origin": "wipose_v3_update",
-      "source_sha256": "cd83322170e507f1bb8e3e238643a0481b23f09f6aaf8eb31592c7168bd1b6f2",
-      "portable_snapshot_sha256": "06aaa3d94ee8b349c925e0536fb04a2a3f2f44b4f77c591d92268c1af4714faf",
-      "v1_sha256": "3892373b4a2af3fa397c0ca1de4c5b67390a974d5edacc76984f8a3a5d91ee75",
-      "v2_base_sha256": "333ad62bac851d4ac8cd24a697aad8afdd23c7d88a2ab02fc6d7b433a29d8d70",
-      "trial_base_sha256": "68fe16fd6a1de37869b3ecd5eb3bf8a245f1b5dfb734c8f41ca2d3b0179d3b02",
-      "v2_sha256": "01fc75059cc5941749e59091fa5d480d2d0bd9062ee6e823aacb71d49a0058b2"
+      "bytes": 388,
+      "sha256": "125094580db952673c2137f8a2cd6472c17e2db8822dfd0b09deed69e6bc670d"
     },
     {
       "path": "ERROR_LOG.md",
-      "origin": "wipose_v3_addition",
-      "source_sha256": null,
-      "sha256": "54c520391321e63354edeb51b626c699307322c22633d015f683d61f5392da1f"
+      "bytes": 4080,
+      "sha256": "dfce39fedff7115987b98f21012ea0a045c839150044663e8f952b27d43e8929"
     },
     {
       "path": "README.md",
-      "sha256": "614f776d69cec01342999e7b0f8ad5801a280bfda87a60b7c61fe0f2d7c7e843",
-      "origin": "wipose_v3_update",
-      "source_sha256": "f3c15ed2c1c0defdbcaf41bb1487e1c6da24417a43c83ce80c132a936fa01085",
-      "portable_snapshot_sha256": "1138f21984c4c74a9f305d7255ce7a08e67db4971c72856a2321303de0c15a16",
-      "v1_sha256": "6ec2ba917ddb3bb18391f539bccf1a94e4a576d17b4f2e975bc95fc11139071e",
-      "v2_base_sha256": "13bd2176b3b6bcea7ddde0025d37ead0fb011bb3f5853dbb034e86b0c496ca29",
-      "trial_base_sha256": "7b8ba8397a4465c7650803abd208365b517212c68b58ce9a6bc02194eafc7caa",
-      "v2_sha256": "02c682a31521e8fa486d7e585d25fe8a4b4f722eb327478629610ee6eedc1d17"
+      "bytes": 7177,
+      "sha256": "f367c5de99941100f01fed9ad86c7aca89d35501f6d729cc2ec5cd7a1f10dc10"
     },
     {
       "path": "benchmark_wipose_io.py",
-      "origin": "paper_protocol_added",
-      "source_sha256": null,
+      "bytes": 3216,
       "sha256": "6dcd2851657ad23a413b654e935563f95fa7dd2cd7ff4b1204e5a23504e60d76"
     },
     {
       "path": "dataset_lib/__init__.py",
-      "sha256": "8dda7b1d88f6f93b4fd2938eb51e467a9b1896ebc1325c18c903040edb55b522",
-      "origin": "copied_identically",
-      "source_sha256": "8dda7b1d88f6f93b4fd2938eb51e467a9b1896ebc1325c18c903040edb55b522"
+      "bytes": 176,
+      "sha256": "8dda7b1d88f6f93b4fd2938eb51e467a9b1896ebc1325c18c903040edb55b522"
     },
     {
       "path": "dataset_lib/config.yaml",
-      "sha256": "a2fdc25c257ef31e75f94a81c367da9a3cd18cd1ac157f42d1014082bc023e15",
-      "origin": "copied_identically",
-      "source_sha256": "a2fdc25c257ef31e75f94a81c367da9a3cd18cd1ac157f42d1014082bc023e15"
+      "bytes": 3131,
+      "sha256": "a2fdc25c257ef31e75f94a81c367da9a3cd18cd1ac157f42d1014082bc023e15"
     },
     {
       "path": "dataset_lib/mmfi.py",
-      "sha256": "4cd487fe7ecf9849f6f7b5e4efa1b347da3750df7ca985225c7d8c841f110289",
-      "origin": "copied_identically",
-      "source_sha256": "4cd487fe7ecf9849f6f7b5e4efa1b347da3750df7ca985225c7d8c841f110289"
+      "bytes": 17844,
+      "sha256": "4cd487fe7ecf9849f6f7b5e4efa1b347da3750df7ca985225c7d8c841f110289"
     },
     {
       "path": "dataset_lib/mmfi_zip.py",
-      "sha256": "df3200e2fa621f37bfd496fcdae93a1c140f6a1024b52b302548c2e552bd41d2",
-      "origin": "copied_identically",
-      "source_sha256": "df3200e2fa621f37bfd496fcdae93a1c140f6a1024b52b302548c2e552bd41d2"
+      "bytes": 2805,
+      "sha256": "df3200e2fa621f37bfd496fcdae93a1c140f6a1024b52b302548c2e552bd41d2"
     },
     {
       "path": "dataset_lib/training_data.py",
-      "origin": "wipose_trial_update",
-      "source_sha256": null,
-      "sha256": "bfd2bb86345b8425069edc5ed637c8be68223358508ff11dd5049fea08d9cf6d",
-      "v2_base_sha256": "014856cd9abcd2c58b5b17db396b0d2beef1f08f5bf938059c014109b8d6e4c7"
+      "bytes": 11787,
+      "sha256": "bfd2bb86345b8425069edc5ed637c8be68223358508ff11dd5049fea08d9cf6d"
     },
     {
       "path": "docs/DATA_FORMAT.md",
-      "sha256": "26d8e9abff6c320c1e7211fae677a82857b6e3749e1bd036c978d81cfddcf162",
-      "origin": "v2_reliability_upgrade",
-      "source_sha256": null,
-      "v1_sha256": "dfa9abf8f82579ddfe3e7eca739dc473ce7e3174e4507b589eea3672bae38d77"
+      "bytes": 2590,
+      "sha256": "26d8e9abff6c320c1e7211fae677a82857b6e3749e1bd036c978d81cfddcf162"
     },
     {
       "path": "docs/ERROR_LOG.md",
-      "sha256": "7cb766bfb874a697541bc63edd1793cb6a729cc90fcd725934ec38f7cdccbfb9",
-      "origin": "paper_protocol_update",
-      "source_sha256": null,
-      "v1_sha256": "58868ded09e0766e85a6144c0211265a41d894a68d379cdc12dd8d81150fe888",
-      "v2_base_sha256": "4f8f1058c830a9a5fa8e8275597aa6691c95d77d705ced85c559620be54066d6",
-      "trial_base_sha256": "c786e20147693b9e4fe1eba83f3bd8c93418970c003789c9d8424c769c050781"
+      "bytes": 14182,
+      "sha256": "7cb766bfb874a697541bc63edd1793cb6a729cc90fcd725934ec38f7cdccbfb9"
     },
     {
       "path": "docs/EXPERIMENTS.md",
-      "sha256": "605135ed870de04310d4da2eac3d35bd52e5bbdec988d39745daba8b751cde4f",
-      "origin": "v2_reliability_upgrade",
-      "source_sha256": null,
-      "v1_sha256": "e67f522369b5cd9611cb00dd58efa7cb21f2f2030d973b47bcfb2cb6ca4c2cb7"
+      "bytes": 3917,
+      "sha256": "605135ed870de04310d4da2eac3d35bd52e5bbdec988d39745daba8b751cde4f"
     },
     {
       "path": "docs/README_V2.md",
-      "origin": "new_v2_file",
-      "source_sha256": null,
+      "bytes": 12227,
       "sha256": "068802c387da76ff07cb9653eb9bbe45850b368cecb661fa676de2f44f93309b"
     },
     {
       "path": "docs/SO_SANH_CODE_CU_MOI.md",
-      "sha256": "84cc553d8eac0ef27f007a705c42f0d61fbfb0b67b445f3c1e563db725a36ee2",
-      "origin": "v2_reliability_upgrade",
-      "source_sha256": null,
-      "v1_sha256": "97ec5c0cc4d09ae67d07e3590b1aac2efc0847b2832818fd6d28a6be793cf1a3"
+      "bytes": 5266,
+      "sha256": "84cc553d8eac0ef27f007a705c42f0d61fbfb0b67b445f3c1e563db725a36ee2"
     },
     {
       "path": "docs/UPSTREAM_README.md",
-      "sha256": "f3c15ed2c1c0defdbcaf41bb1487e1c6da24417a43c83ce80c132a936fa01085",
-      "origin": "new_portable_file",
-      "source_sha256": null
+      "bytes": 3138,
+      "sha256": "f3c15ed2c1c0defdbcaf41bb1487e1c6da24417a43c83ce80c132a936fa01085"
     },
     {
       "path": "docs/V2_CHANGELOG.md",
-      "origin": "new_v2_file",
-      "source_sha256": null,
+      "bytes": 3719,
       "sha256": "b1626bf92c5036f721ad2d512683ce809b4081c3f574389acd1a535edd454464"
     },
     {
       "path": "docs/WIPOSE_PAPER_PROTOCOL.md",
-      "origin": "paper_protocol_added",
-      "source_sha256": null,
+      "bytes": 7733,
       "sha256": "c1fcd2fbcb15996ac0eba572d5a52ead91aea40fe1b9a063cf3fc96788d27c98"
     },
     {
       "path": "docs/WIPOSE_PAPER_V2.md",
-      "origin": "wipose_v3_addition",
-      "source_sha256": null,
+      "bytes": 6714,
       "sha256": "469ec984cb7f68723818289464f3b349a77301eb9fcc6131daa148f740c3c110"
     },
     {
       "path": "docs/WIPOSE_TRIAL.md",
-      "origin": "paper_protocol_update",
-      "source_sha256": null,
-      "sha256": "f42601f7f5256ff50ce2a165584e510a1068860b6e53f93f87e05613a65989c4",
-      "trial_base_sha256": "25fab8eb1440dc1db00ee854362f97ff9ed6559a2a60e1e4d7af8b44a026c9a9"
+      "bytes": 6818,
+      "sha256": "f42601f7f5256ff50ce2a165584e510a1068860b6e53f93f87e05613a65989c4"
     },
     {
       "path": "model/HPE_Wipose.py",
-      "sha256": "248d5f82427d935514f4eeb6a6760567d92f388cdf7be62eea6d81ba4c1c533d",
-      "origin": "copied_identically",
-      "source_sha256": "248d5f82427d935514f4eeb6a6760567d92f388cdf7be62eea6d81ba4c1c533d"
+      "bytes": 2425,
+      "sha256": "248d5f82427d935514f4eeb6a6760567d92f388cdf7be62eea6d81ba4c1c533d"
     },
     {
       "path": "model/HPE_no_denoiser.py",
-      "sha256": "891c4cb4ed8cc38eb1fb60d9e564eb060c92c4e3ea5b8dd241eafcb5bf5a6b3d",
-      "origin": "copied_identically",
-      "source_sha256": "891c4cb4ed8cc38eb1fb60d9e564eb060c92c4e3ea5b8dd241eafcb5bf5a6b3d"
+      "bytes": 1737,
+      "sha256": "891c4cb4ed8cc38eb1fb60d9e564eb060c92c4e3ea5b8dd241eafcb5bf5a6b3d"
     },
     {
       "path": "model/__init__.py",
-      "sha256": "60cf7cc9f0729ad4a274d92634b5ea29e6eedcd80154704e2b17c4e0044ddee9",
-      "origin": "adapted_in_portable_only",
-      "source_sha256": "7beb520d94d96ea6c41f23a218c6a414c472cef8a449c0e4cea16f5128cbbd67"
+      "bytes": 109,
+      "sha256": "60cf7cc9f0729ad4a274d92634b5ea29e6eedcd80154704e2b17c4e0044ddee9"
     },
     {
       "path": "model/st_hpe.py",
-      "sha256": "6658986b1eff55b1daf55614e339397c1431d08d164b5960015b40effcd469fa",
-      "origin": "wipose_v3_update",
-      "source_sha256": "58f3cd2ecba9e85e64511e0f0884f4310edf6d372528793468a971e036e774e1",
-      "v1_sha256": "58f3cd2ecba9e85e64511e0f0884f4310edf6d372528793468a971e036e774e1",
-      "v2_sha256": "5d15e94eff4ca4741def53f5508d8ff06821db5ab7d65b67ab7d57d26fa8eb12"
+      "bytes": 5575,
+      "sha256": "d61389bea1dd401b7d74235032f359fa5babb497f9c5dace79640222cca31cc8"
     },
     {
       "path": "model/tcn_block.py",
-      "sha256": "24c61cb9e93f6da3852859f2c4e663d4597f3b5a06dc6912677b985868dcf355",
-      "origin": "wipose_v3_update",
-      "source_sha256": "8e761ffeac25c70a0c596edf776fd82392009b75758a0756dabf47d007f4e7d7",
-      "v1_sha256": "8e761ffeac25c70a0c596edf776fd82392009b75758a0756dabf47d007f4e7d7",
-      "v2_sha256": "c5ca37e9f28d719291165bd6ba8b6f49038aa326f11fe8b762bfdda7dffaca35"
+      "bytes": 3758,
+      "sha256": "aae58c36a86eabd8fee53438136006ff28869a0604147152d67c26f8ea6928eb"
     },
     {
       "path": "model/utils/SKNet.py",
-      "sha256": "176aa13fa587ed28d0ffa23d3b3619418af6d0101cbb8357a24b86763be1d03f",
-      "origin": "wipose_v3_update",
-      "source_sha256": "d70701154c662bcad61397f61982d693fa1437f67799df6e45305c05636ea11a",
-      "v2_sha256": "d70701154c662bcad61397f61982d693fa1437f67799df6e45305c05636ea11a"
+      "bytes": 8831,
+      "sha256": "176aa13fa587ed28d0ffa23d3b3619418af6d0101cbb8357a24b86763be1d03f"
     },
     {
       "path": "model/utils/__init__.py",
-      "sha256": "ba5496b5a0981ed17acdafd66ab817b4a2c0f15b788d5a94b3e34858960e0fb2",
-      "origin": "adapted_in_portable_only",
-      "source_sha256": "bf02b23860f5e4145f29ac823ca6d5509b90a1ea20fab807d9131e23b5468807"
+      "bytes": 71,
+      "sha256": "ba5496b5a0981ed17acdafd66ab817b4a2c0f15b788d5a94b3e34858960e0fb2"
     },
     {
       "path": "model/utils/regression.py",
-      "sha256": "a6e11882582ed7126a165b8916c42fcaa786d2b657e9bf6257544bd4ed4a534d",
-      "origin": "v2_reliability_upgrade",
-      "source_sha256": "c2735c46637f6a4a33be1da6345eb39430e0642ee480e29444b5a55ab220f216",
-      "v1_sha256": "c2735c46637f6a4a33be1da6345eb39430e0642ee480e29444b5a55ab220f216"
+      "bytes": 1161,
+      "sha256": "a6e11882582ed7126a165b8916c42fcaa786d2b657e9bf6257544bd4ed4a534d"
     },
     {
       "path": "model/utils/utils.py",
-      "sha256": "4981bf207b485cb7289c25b805f7eb42944e378d31a729c4e073789f947bd214",
-      "origin": "copied_identically",
-      "source_sha256": "4981bf207b485cb7289c25b805f7eb42944e378d31a729c4e073789f947bd214"
+      "bytes": 4706,
+      "sha256": "4981bf207b485cb7289c25b805f7eb42944e378d31a729c4e073789f947bd214"
+    },
+    {
+      "path": "probe_trainability.py",
+      "bytes": 9190,
+      "sha256": "0d03980b33cdd1a8a78bd8005b37c70fdfb54887696c2cf4988a8beff1b32cad"
     },
     {
       "path": "requirements-wipose-trial.txt",
-      "origin": "wipose_trial_added",
-      "source_sha256": null,
+      "bytes": 128,
       "sha256": "f6634eda7dd008fc6d291c3d2a73d812d2a27f6aaccddf286228c74aa81d81cd"
     },
     {
       "path": "requirements-wipose.txt",
-      "sha256": "9a3839fb4b7158d2681ec020760cc6ec3e14d0dea99b8b6fc41cfbfa7ef88128",
-      "origin": "new_portable_file",
-      "source_sha256": null
+      "bytes": 49,
+      "sha256": "9a3839fb4b7158d2681ec020760cc6ec3e14d0dea99b8b6fc41cfbfa7ef88128"
     },
     {
       "path": "requirements.txt",
-      "sha256": "bb1dd251cd5a03b1aab906dadf8c782b59a7b20371b9a898010b57e90114e7f4",
-      "origin": "new_portable_file",
-      "source_sha256": null
+      "bytes": 121,
+      "sha256": "bb1dd251cd5a03b1aab906dadf8c782b59a7b20371b9a898010b57e90114e7f4"
     },
     {
       "path": "run_experiments.py",
-      "sha256": "31c103bf027cea31a15d6bbb2c56d16744b385a1341c54c8be3c4185ef7ee25f",
-      "origin": "v2_reliability_upgrade",
-      "source_sha256": "79a4d60ffc6e3a8d0ccd6f85c6daabb2cabf97cf4b7bd7d69973c8441c679f33",
-      "v1_sha256": "79a4d60ffc6e3a8d0ccd6f85c6daabb2cabf97cf4b7bd7d69973c8441c679f33"
+      "bytes": 203,
+      "sha256": "31c103bf027cea31a15d6bbb2c56d16744b385a1341c54c8be3c4185ef7ee25f"
     },
     {
       "path": "run_wipose_ablation.py",
-      "origin": "wipose_v3_addition",
-      "source_sha256": null,
-      "sha256": "d5c31a9d2c0c049178a7025fe11d4790c16e684dc7b05d6b7d533990d9077594"
+      "bytes": 17840,
+      "sha256": "507010045dc8b7cde2a34c2fcd572704d44c21e778d59dc66b2d21fd1cab305d"
     },
     {
       "path": "run_wipose_comparison.py",
-      "origin": "wipose_trial_added",
-      "source_sha256": null,
+      "bytes": 13904,
       "sha256": "9bf84a9511d62342d9981d6231c3d4a5ebd0866162cd35efbdd969aec16657fd"
     },
     {
       "path": "run_wipose_paper.py",
-      "origin": "paper_protocol_added",
-      "source_sha256": null,
+      "bytes": 14072,
       "sha256": "d7b7d6d2acff2a71ada98c84704c5eb2bd12068f7ff60beb6d3486af70d0c04c"
     },
     {
+      "path": "test_atomic_retry.py",
+      "bytes": 2334,
+      "sha256": "a0b780d99f77dc5371b7ee70566b2fa0a4df5ee006640816bd9ca5df7e3302d7"
+    },
+    {
       "path": "test_cuda_pilot.py",
-      "origin": "new_v2_file",
-      "source_sha256": null,
+      "bytes": 1855,
       "sha256": "7979ffbab3cb8a723a9ceb26cc9fbc60770a65118dfb63505812a41a4372b030"
     },
     {
       "path": "test_reliability.py",
-      "origin": "new_v2_file",
-      "source_sha256": null,
+      "bytes": 12648,
       "sha256": "46648e5ae526e85f9c00ef1f22a944ac1581866e8ed69fa29160d81e7b8e0f4e"
     },
     {
       "path": "test_sanity.py",
-      "sha256": "3a1981a1275e22112df2459237ebfc0f5f85348ee250c9292b71425f5ce1fa24",
-      "origin": "copied_identically",
-      "source_sha256": "3a1981a1275e22112df2459237ebfc0f5f85348ee250c9292b71425f5ce1fa24"
+      "bytes": 7909,
+      "sha256": "3a1981a1275e22112df2459237ebfc0f5f85348ee250c9292b71425f5ce1fa24"
+    },
+    {
+      "path": "test_temporal_trainability.py",
+      "bytes": 6076,
+      "sha256": "ec2d4bbc608309afe457a2660e29cd36b9e8a1558ea4f50a6b8a7a1c05d977d0"
     },
     {
       "path": "test_training_smoke.py",
-      "sha256": "4af0a38824864df27915815af1631ff5fd743735a2b577449172d661a28eada1",
-      "origin": "v2_reliability_upgrade",
-      "source_sha256": "fb096b806ef545a4f58e5d09f42ac0cec2d32c813d6cfe8af4beb107ee46adcc",
-      "v1_sha256": "fb096b806ef545a4f58e5d09f42ac0cec2d32c813d6cfe8af4beb107ee46adcc"
+      "bytes": 3542,
+      "sha256": "4af0a38824864df27915815af1631ff5fd743735a2b577449172d661a28eada1"
     },
     {
       "path": "test_wipose_ablation.py",
-      "origin": "wipose_v3_addition",
-      "source_sha256": null,
+      "bytes": 11324,
       "sha256": "35e54e65e2544a37f9b8cbeb6bc162bbc326d014f39b3e56a7d13acf6856b6d2"
     },
     {
       "path": "test_wipose_paper.py",
-      "origin": "paper_protocol_added",
-      "source_sha256": null,
+      "bytes": 8294,
       "sha256": "17fb56912822e527a8f28f40d046a429c5c833f916f600e62e2c23e265ec32f7"
     },
     {
       "path": "test_wipose_smoke.py",
-      "sha256": "34efccf3989f25689e7647f51e9a1eec7f53b6b0b12793ddacc31d2eb86e3dc0",
-      "origin": "v2_reliability_upgrade",
-      "source_sha256": null,
-      "v1_sha256": "605d309def302d20817d2a03ec335423cff1f6d6f9f92574ce241eb6c9df08b5"
+      "bytes": 3568,
+      "sha256": "34efccf3989f25689e7647f51e9a1eec7f53b6b0b12793ddacc31d2eb86e3dc0"
     },
     {
       "path": "test_wipose_trial.py",
-      "origin": "wipose_trial_added",
-      "source_sha256": null,
+      "bytes": 9484,
       "sha256": "14695b6daaf8c0d3a8c55dc46e92c4312f5fb0776b863763bf8179147903f925"
     },
     {
       "path": "train_mmfi.py",
-      "sha256": "7d7579d040233649aefd8bda2a86d118879256c789fd73789f633c5769e1bd3d",
-      "origin": "new_portable_file",
-      "source_sha256": null
+      "bytes": 163,
+      "sha256": "7d7579d040233649aefd8bda2a86d118879256c789fd73789f633c5769e1bd3d"
     },
     {
       "path": "train_wipose.py",
-      "sha256": "154b66ac14828883caca374d4e7a85f795acf1e7b47fc71dee0da3a5edcc6309",
-      "origin": "v2_reliability_upgrade",
-      "source_sha256": null,
-      "v1_sha256": "a452417c2b373e61eb797da4f9d7724aa7e71bce53870bce1a96fd2a78d1bbcd"
+      "bytes": 282,
+      "sha256": "154b66ac14828883caca374d4e7a85f795acf1e7b47fc71dee0da3a5edcc6309"
     },
     {
       "path": "training.py",
-      "origin": "wipose_v3_update",
-      "source_sha256": null,
-      "sha256": "805fe0727d54c550d5fcd37c1e2d5f0963a1029c96d8f11bd6855334bf51593a",
-      "v2_base_sha256": "408cde164287e2dfaac0e8ab828ce74461c4a2a96c2e5a7a316b62d11e9d6558",
-      "trial_base_sha256": "d50388a53bc2477995cb575e4f150b5b992dd3101b50e5ce95b5e3bb2563ea45",
-      "v2_sha256": "e3e7b34d16826b2b11fc3908b4de7d1531d6585736c5c5add88941fe5c0e1341"
+      "bytes": 23449,
+      "sha256": "2aa56b33d279423a8513c583672631ab5bb5b692fb6421117987dc499cc076e5"
     },
     {
       "path": "training_cli.py",
-      "origin": "wipose_trial_update",
-      "source_sha256": null,
-      "sha256": "2781b53d56fdd686ed1aa1c808bd530a33e123aeec51fe8b89051980dc5f7a91",
-      "v2_base_sha256": "477b0975dda17d406bf2abf709da9a59d3f36f3f103a46af69e1343440594d18"
+      "bytes": 7830,
+      "sha256": "2781b53d56fdd686ed1aa1c808bd530a33e123aeec51fe8b89051980dc5f7a91"
     },
     {
       "path": "utils/__init__.py",
-      "sha256": "b6a45ee6764b40ed8f8be139fa410e6baa7988394aa3d6cacbd8ecaa93b604e6",
-      "origin": "copied_identically",
-      "source_sha256": "b6a45ee6764b40ed8f8be139fa410e6baa7988394aa3d6cacbd8ecaa93b604e6"
+      "bytes": 256,
+      "sha256": "b6a45ee6764b40ed8f8be139fa410e6baa7988394aa3d6cacbd8ecaa93b604e6"
     },
     {
       "path": "utils/data_loading.py",
-      "origin": "paper_protocol_added",
-      "source_sha256": null,
+      "bytes": 971,
       "sha256": "c2cc7ee2a98a52032d361543a7664decfd3d2e77481c5e98a1a0f94a05e7ab82"
     },
     {
       "path": "utils/eval.py",
-      "sha256": "f18610cacfaabe020b5bebef59d327c61eafc84f415c1b5c067ef0606097d1a4",
-      "origin": "copied_identically",
-      "source_sha256": "f18610cacfaabe020b5bebef59d327c61eafc84f415c1b5c067ef0606097d1a4"
+      "bytes": 6025,
+      "sha256": "f18610cacfaabe020b5bebef59d327c61eafc84f415c1b5c067ef0606097d1a4"
     },
     {
       "path": "utils/experiment_archive.py",
-      "origin": "wipose_v3_addition",
-      "source_sha256": null,
+      "bytes": 3116,
       "sha256": "bd37e4f627e00268818f35179b3ebb0588aecc33851a0109c20d6946726f4e2c"
     },
     {
       "path": "utils/losses.py",
-      "sha256": "681372fea02bb0260cc83668942e331bf9145e1c8fb0053e1ae8c41dd0669cea",
-      "origin": "v2_reliability_upgrade",
-      "source_sha256": "df2192170e3ed4d849d5072d53db4b1a3ca4c3a9058ea9b81ff791df6a423bab",
-      "v1_sha256": "df2192170e3ed4d849d5072d53db4b1a3ca4c3a9058ea9b81ff791df6a423bab"
+      "bytes": 3616,
+      "sha256": "681372fea02bb0260cc83668942e331bf9145e1c8fb0053e1ae8c41dd0669cea"
     },
     {
       "path": "utils/metrics.py",
-      "origin": "wipose_trial_update",
-      "source_sha256": null,
-      "sha256": "b52698c6d3a5cb4319419c8b5a0c04533e5623ce5b0f4ec8c7a5c82a4507cb3a",
-      "v2_base_sha256": "5b21ccebdba34e96bb623645067aca6a0267160b31b75897a517395e4abaaf4b"
+      "bytes": 5750,
+      "sha256": "b52698c6d3a5cb4319419c8b5a0c04533e5623ce5b0f4ec8c7a5c82a4507cb3a"
     },
     {
       "path": "utils/noise.py",
-      "sha256": "b7c25fe9b46b200175836b9f1e03731816a408bc954fc5a264a58438b13b2738",
-      "origin": "copied_identically",
-      "source_sha256": "b7c25fe9b46b200175836b9f1e03731816a408bc954fc5a264a58438b13b2738"
+      "bytes": 1737,
+      "sha256": "b7c25fe9b46b200175836b9f1e03731816a408bc954fc5a264a58438b13b2738"
     },
     {
       "path": "utils/runtime.py",
-      "origin": "new_v2_file",
-      "source_sha256": null,
-      "sha256": "a31638e200274b023c55c6bb39bbb8407c03e834a7eecd86bebe1564f426af78"
+      "bytes": 3483,
+      "sha256": "024ff040caec69b28c0a96402da6b075965980462679cdf596f0eeb86c5a8c9d"
+    },
+    {
+      "path": "utils/trainability.py",
+      "bytes": 3854,
+      "sha256": "65bf69d81e6a5f56eba1e2482ff534ccf7ea70203ce5fd1ad744112c2c458824"
     },
     {
       "path": "validate_portable.py",
-      "sha256": "688cff98146e23d921241a04fd9c9c6a428be272cdd54c0602ad3e065020273a",
-      "origin": "v2_reliability_upgrade",
-      "source_sha256": null,
-      "v1_sha256": "351a51c2a132977c11f85ea0ebe03c57bf3a7a1585d9fa0689336ceeaa012a1e"
+      "bytes": 1586,
+      "sha256": "688cff98146e23d921241a04fd9c9c6a428be272cdd54c0602ad3e065020273a"
     },
     {
       "path": "verify_package.py",
-      "sha256": "d18a953106dca170ecf9a5876a689f0a3dfa47fc15bb4c1cfde4df1783996060",
-      "origin": "new_portable_file",
-      "source_sha256": null
+      "bytes": 795,
+      "sha256": "d18a953106dca170ecf9a5876a689f0a3dfa47fc15bb4c1cfde4df1783996060"
     },
     {
       "path": "wipose/__init__.py",
-      "sha256": "c350a74b11725b2f044667a84da021cf102ec467dec83698efa507acd6708088",
-      "origin": "copied_identically",
-      "source_sha256": "c350a74b11725b2f044667a84da021cf102ec467dec83698efa507acd6708088"
+      "bytes": 41,
+      "sha256": "c350a74b11725b2f044667a84da021cf102ec467dec83698efa507acd6708088"
     },
     {
       "path": "wipose/ablation_config.py",
-      "origin": "wipose_v3_addition",
-      "source_sha256": null,
-      "sha256": "8e8b7afa7b916663edbe8fa59e8ecff51a11c942c031e05186264098f27a542a"
+      "bytes": 1911,
+      "sha256": "bee471b38dfb045e071e93e47d6f4ba931e0df97a82c27e8d4668f615fb7230b"
     },
     {
       "path": "wipose/ablation_data.py",
-      "origin": "wipose_v3_addition",
-      "source_sha256": null,
+      "bytes": 5003,
       "sha256": "70c23417cd4bfed5b3a3845fbaa626a546a6a1e2c628961ebe343bdb280b56d6"
     },
     {
       "path": "wipose/paper_data.py",
-      "origin": "paper_protocol_added",
-      "source_sha256": null,
+      "bytes": 6080,
       "sha256": "68f97b29fa011330ebdd17da2ec1574ffac79fcfcd9283340fead20a707f3909"
     },
     {
       "path": "wipose/wipose_dataset.py",
-      "sha256": "67b94d929ac0513ffe91902cc5a0b221f2b65e4c038bbf96df012a707290f8c3",
-      "origin": "wipose_trial_update",
-      "source_sha256": "65c9a89b3560a8ca291d2b96242ce5581ca5310e82a53641cc7ce545fdc153d5",
-      "v2_base_sha256": "868524ac7014342561a8553177082ca3a2185564bcbf577d5b5e58d684b0fced"
+      "bytes": 4521,
+      "sha256": "67b94d929ac0513ffe91902cc5a0b221f2b65e4c038bbf96df012a707290f8c3"
     }
   ]
 }

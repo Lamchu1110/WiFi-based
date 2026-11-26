@@ -1,90 +1,81 @@
-# ST-DSKPose WiPose v3
+# WiPose v4: kiểm tra khả năng học của TCN
 
-Nhánh `experiment/wipose-dsk-tcn-v3` bổ sung DSK giữ đúng vị trí kênh/tần số và một TCN nhỏ có gate, cùng các đối chứng để đo đóng góp từng phần. Đây là phiên bản thực nghiệm; kiểm thử đúng tensor/gradient không bảo đảm độ chính xác cao hơn Baseline.
+Nhánh này tiếp nối chẩn đoán checkpoint ngày 25/11/2026: scalar gate gần 0 làm nhánh TCN cũ cập nhật rất ít. V4 thêm **ShortResidualTCN**, dùng lớp chiếu đầu ra khởi tạo bằng 0 và không có scalar gate. Mục tiêu là kiểm tra khả năng học của nhánh; chưa có kết quả full-data chứng minh vượt HPE-Li.
 
-Code v2 và kết quả cũ giữ ở nhánh `experiment/wipose-paper-protocol`. [Hướng dẫn v2 được giữ lại](docs/WIPOSE_PAPER_V2.md). Không resume checkpoint v2 bằng trainer v3.
+Baseline HPE-Li giữ nguyên kiến trúc và phép tính forward. Mã DSK, pooling, decoder và các ID lịch sử không bị thay thế. DSK corrected là biến thể của chúng ta, không phải baseline của tác giả.
 
-## Các cấu hình
+## Năm cấu hình đối chứng
 
-| Tên | DSK | Pooling | TCN |
+| ID | DSK | TCN | Vai trò |
 |---|---|---|---|
-| `baseline_legacy` | Cách bố trí trục kế thừa | Gốc `(2,2)` | Không |
-| `baseline_corrected` | Giữ vị trí `[B,M,C,F,T]` | Gốc `(2,2)` | Không |
-| `tcn_gated` | Đã sửa | Gốc `(2,2)` | Trước pooling đầu; dilation 1/2, gate học được |
-| `pooling_legacy` | Kế thừa | Giữ T, `(2,1)` | Không |
-| `tcn_legacy` | Kế thừa | Giữ T, `(2,1)` | TCN cũ cuối backbone |
-| `pooling_corrected` | Đã sửa | Giữ T, `(2,1)` | Không |
-| `tcn_corrected` | Đã sửa | Giữ T, `(2,1)` | TCN cũ cuối backbone |
+| `baseline_legacy` | Gốc | Không | Đối chứng chính HPE-Li |
+| `baseline_corrected` | Đã sửa | Không | Ablation DSK của chúng ta |
+| `tcn_gated` | Đã sửa | Scalar gate khởi tạo 0 | Mốc TCN v3 |
+| `tcn_residual_legacy` | Gốc | Projection khởi tạo 0, không scalar gate | Tách đóng góp TCN mới |
+| `tcn_residual_corrected` | Đã sửa | Projection khởi tạo 0, không scalar gate | Ours kết hợp DSK + TCN mới |
 
-Mặc định chạy ba dòng đầu. So `baseline_corrected` với `baseline_legacy` để đo sửa DSK; so `tcn_gated` với `baseline_corrected` để đo TCN mới. So `tcn_legacy` với `pooling_legacy` để tách TCN cũ khỏi đổi pooling. Mọi cấu hình trong một suite dùng cùng split và recipe.
+Các model có cùng khởi tạo backbone theo seed. TCN mới ban đầu cho đầu ra giống bản không TCN **cùng DSK**. Projection nhận gradient ở bước đầu; trunk temporal nhận gradient sau khi projection khác 0. Điều này cần được theo dõi thực tế, không bảo đảm cải thiện độ chính xác.
 
-Input WiPose là `[B,9,30,5]`, output `[B,18,2]`. Năm mẫu CSI nằm trong một frame ảnh, không phải năm pose liên tiếp. Loss trong thí nghiệm này giữ plain MSE XY; chưa thêm loss cấu trúc 2D. Confidence trong nhãn không phải tọa độ Z. Không bật `direct_3d` hoặc loss XYZ cho dữ liệu native WiPose.
+## Cài đặt và kiểm tra
 
-## Tải code và kiểm tra môi trường
-
-Mở terminal trên máy train, giữ môi trường PyTorch đã nhận RTX 3060:
+Dùng môi trường PyTorch CUDA đang chạy được trên máy train. Các phụ thuộc nằm trong `requirements-wipose-trial.txt`; không cài lại torch CPU đè lên môi trường GPU. Kiểm tra:
 
 ```powershell
-git clone --branch experiment/wipose-dsk-tcn-v3 https://github.com/Lamchu1110/WiFi-based.git WiFi-based-v3
-cd WiFi-based-v3
 python -m pip install -r requirements-wipose-trial.txt
-python -c "import torch; print(torch.__version__, torch.cuda.is_available()); print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'CPU')"
 python verify_package.py
+python -c "import torch; print(torch.__version__); print(torch.cuda.is_available()); print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'CPU')"
 ```
 
-Requirements không tự thay PyTorch/torchvision. Python đang chạy phải có `h5py` và `mat73` để đọc MATLAB 7.3, ngoài NumPy/SciPy và các phụ thuộc trong requirements. Có thể chạy `python test_wipose_ablation.py` để kiểm tra DSK, gradient, split, cache, resume và lưu code trên dữ liệu giả.
-
-## Chạy ngay trên WiPose
-
-Giả sử dữ liệu đã giải nén có `E:\Wi-Pose\Train` và `E:\Wi-Pose\Test`. Chạy từng lệnh riêng, chờ lệnh trước hoàn tất:
+Mỗi clone mới có thư mục riêng, không giải nén chồng v4 lên v3. Có thể lấy nhánh này bằng:
 
 ```powershell
-python run_wipose_ablation.py --dataset-root "E:\Wi-Pose" --mode preflight --cache off
-python run_wipose_ablation.py --dataset-root "E:\Wi-Pose" --mode pilot
-python run_wipose_ablation.py --dataset-root "E:\Wi-Pose" --mode train --stage develop --epochs 10
+git clone --branch experiment/wipose-tcn-trainability-v4 https://github.com/Lamchu1110/WiFi-based.git WiFi-based-v4
+cd WiFi-based-v4
 ```
 
-`preflight` kiểm tra dữ liệu/cấu hình. `pilot` chạy 1 epoch trên tập nhỏ để phát hiện lỗi; điểm pilot không dùng làm kết quả bài báo. Lệnh cuối chạy ba cấu hình chính để sàng lọc bằng validation, chưa đánh giá test. Nếu cần 30/50 epoch để chọn kiến trúc, bắt đầu suite develop mới có ngân sách đó từ đầu; resume không cho đổi tổng epoch hoặc recipe giữa chừng.
+## Chạy trên máy bên Đài: dữ liệu E:\Wi-Pose
 
-Mặc định: SGD momentum 0,9, lr 0,001 cố định, batch 32, weight decay 0, FP32, TF32 tắt, model seed 0. Có thể thử `--optimizer adamw --lr 0.0003 --weight-decay 0.0001 --schedule cosine` trong suite develop mới; cùng recipe áp dụng cho tất cả cấu hình được chọn, không tự động tuyên bố đây là tối ưu.
-
-## Validation và đánh giá cuối
-
-`develop` giữ outer split 70/30, seed 41; lấy 10% của phần 70% làm validation với seed riêng 17. Với 166.600 mẫu sẽ có 104.958 train, 11.662 validation, 49.980 test giữ lại. Cache và huấn luyện develop không đọc tensor của test. Chọn checkpoint bằng validation MPJPE, không theo test.
-
-`final` dùng toàn bộ 70% để train, không có validation, đánh giá checkpoint cuối. Sau khi đã chọn kiến trúc bằng develop, ví dụ xác nhận Baseline sửa DSK và TCN mới:
+Chạy lần lượt trong thư mục chứa `run_wipose_ablation.py`:
 
 ```powershell
-python run_wipose_ablation.py --dataset-root "E:\Wi-Pose" --mode train --stage final --epochs 50 --variants baseline_corrected tcn_gated --seeds 0 1 2
+python run_wipose_ablation.py --dataset-root "E:\Wi-Pose" --stage develop --mode preflight --cache off
+python run_wipose_ablation.py --dataset-root "E:\Wi-Pose" --stage develop --mode pilot --epochs 1
+python run_wipose_ablation.py --dataset-root "E:\Wi-Pose" --stage develop --mode train --epochs 10 --seeds 0
 ```
 
-Lệnh trên chạy sáu lượt train tuần tự. Nếu ngân sách chưa đủ có thể bắt đầu `--seeds 0`; chưa có nhiều seed thì chưa báo cáo độ lệch chuẩn như đã đo. Nếu đã chọn recipe khác trên validation, truyền chính recipe đó cho cả hai mô hình ở lệnh final.
+Mặc định chạy cả năm cấu hình trên cùng split. Recipe giữ SGD lr=0.001, momentum=0.9, weight_decay=0, batch=32, MSE XY, FP32, lịch lr constant. Các lựa chọn optimizer khác chỉ là ablation riêng, không được đổi riêng cho một model rồi quy toàn bộ chênh lệch cho kiến trúc.
 
-Có thể truyền `--split-file "duong_dan\split.json"` để dùng danh sách outer train/test đã lưu. File phải chứa đầy đủ mẫu đúng dataset, không có overlap, validation hoặc pilot subset. Mặc định v3 dùng cách sắp xếp tên file và outer seed như nhánh paper v2. Đây là random-frame split, không phải đánh giá cross-subject/cross-sequence và không chứng minh tái lập đúng bảng số của bài báo.
+`develop` giữ outer 70/30 seed 41; tách 10% của phần train làm validation với seed 17, không đọc tensor test ngay cả khi tạo cache. Với bộ 166.600 mẫu: 104.958 train / 11.662 validation / 49.980 test giữ riêng. Mốc 10 epoch là vòng development chọn phương pháp, không phải thay thế bảng final 50 epoch. Pilot chỉ là kiểm tra ngắn.
 
-## Log và bằng chứng cho ablation
+Nếu còn `split.json` của suite final trước, thêm cùng tùy chọn `--split-file "DUONG_DAN_THAT_TOI_SPLIT.json"` ở cả ba lệnh. File phải là full split không có validation/pilot, với ID khớp toàn bộ dữ liệu; không lấy split của 512 mẫu local. Không có file này thì dùng phép chia mặc định, và cần đối chiếu danh sách ID với lượt cũ trước khi ghép kết quả.
 
-Mỗi suite có thư mục mới trong `runs_wipose_v3/`, với các run `seed_0/baseline_corrected/`, `seed_0/tcn_gated/`… Không ghi đè suite cũ. Thư mục gồm:
+Test cũ đã được phân tích để định hướng nghiên cứu; không dùng nó để dò gate/loss tiếp. Chốt cấu hình bằng development rồi mới tạo suite `--stage final --mode train --epochs 50` với các biến thể đã chốt. Nếu muốn tăng độ tin cậy, chạy development nhiều seed (`--seeds 0 1 2`), giữ cả kết quả kém. Đánh giá final dùng checkpoint cuối; development chọn checkpoint theo validation MPJPE. Hai loại điểm phải báo cáo riêng.
 
-- `source_snapshot.zip`, `source_manifest.json`, `source.diff`: code thực tế, SHA256, commit và thay đổi chưa commit.
-- `command.json`, `suite_config.json`, `protocol.json`, `environment.json`, `split.json`: lệnh, cấu hình, môi trường và danh sách mẫu.
-- Mỗi run: `train.log`, `config.json`, `metrics.csv`, `performance.jsonl`, `status.json`, `last.pt` và `best.pt` hoặc `final.pt`.
-- Develop: `validation_metrics.json`, `validation_predictions.npz`. Final: `test_metrics.json`, `test_predictions.npz`. NPZ chứa prediction XY và target XY/confidence theo thứ tự ID trong split (dùng mục pilot nếu là pilot).
-- `comparison.csv/json`: điểm từng seed; JSON thêm trung bình/độ lệch chuẩn mẫu và chênh lệch cho các cặp ablation hợp lệ. Độ lệch chuẩn là `null` khi chỉ có một seed.
-- `tcn_alpha` được ghi mỗi epoch cho TCN mới để xem nhánh có thực sự học hay không.
+## Đọc log và gửi kết quả
 
-Lưu cả thư mục suite, không chỉ file CSV. Giữ cả kết quả kém và các run thất bại. Source snapshot không chứa dataset, checkpoint hay file `.env`.
+Mỗi lượt có thư mục riêng trong `runs_wipose_v4/`, giữ command, môi trường, source snapshot/hash/diff, split, config, metrics, checkpoint và trạng thái. Gửi lại **toàn bộ suite**, không chỉ comparison.csv.
 
-## Resume và tốc độ
-
-Khi bị gián đoạn, dùng đường dẫn suite được in trên terminal:
+- `comparison.csv/json`: metric từng model và seed; JSON ghi các cặp đối chứng và độ lệch chuẩn khi có nhiều seed.
+- `seed_0/<variant>/trainability.jsonl`: gradient sau clipping, cập nhật trọng số thực tế sau optimizer, norm nhánh so với khởi tạo và tỷ lệ residual/input trước cập nhật. Mặc định lấy mẫu ở 5 bước đầu, mỗi 100 bước và cuối epoch; không thêm forward.
+- Projection có norm khởi tạo 0 nên tỷ lệ thay đổi tương đối là `null`; đọc `change_norm` và `changed_elements`. Không coi `null` là lỗi học.
+- Mỗi lần resume có `attempt` riêng trong log chẩn đoán. Nếu crash và chạy lại từ checkpoint, bước trùng thuộc lần thử khác; không cộng thành nhiều bước train độc lập.
+- `metrics.csv`, `train.log`, `performance.jsonl`, `last.pt` và `best.pt`/`final.pt` vẫn được giữ như trước. Không có trainability log cho baseline không TCN.
 
 ```powershell
-python run_wipose_ablation.py --resume-suite "runs_wipose_v3\TEN_SUITE_DANG_CHAY"
+python run_wipose_ablation.py --resume-suite "runs_wipose_v4\TEN_SUITE_DANG_CHAY"
 ```
 
-Resume giữ nguyên split, seed, optimizer, scheduler, mục tiêu, kiến trúc và code. Chỉ cho đổi `--device`/`--workers`. Nếu code đã sửa, khôi phục code của run hoặc tạo suite mới; không gộp kết quả hai kiến trúc. Những run đã hoàn thành được giữ nguyên.
+Chỉ resume bằng đúng source/config của suite. V4 từ chối resume suite v3; dùng nhánh cũ để tiếp tục v3. Không sửa kiến trúc giữa chừng rồi nạp optimizer cũ để gọi là cùng thí nghiệm.
 
-Cache mmap tránh đọc MATLAB lại ở mỗi epoch. Mặc định `--workers 0`; có thể đo thử 2 hoặc 4 trên máy của bạn. Batch mặc định vẫn 32. Kiểm tra loss/gradient mỗi bước; kiểm tra tham số mỗi 100 bước và trước mọi checkpoint để giảm chi phí kiểm tra lặp lại. Có thể đặt `--parameter-check-every 1` nếu cần chẩn đoán sát từng bước. `--precision bf16` chỉ dùng khi GPU hỗ trợ và đã thử pilot, với cùng precision cho hai mô hình.
+## Kiểm thử và giới hạn
 
-Thay precision, optimizer hoặc số epoch là một điều kiện thí nghiệm cần ghi rõ. Không có cam kết rằng thay đổi này sẽ cho kết quả tốt nhất.
+```powershell
+python test_temporal_trainability.py
+python test_wipose_ablation.py
+```
+
+`probe_trainability.py` là công cụ chẩn đoán SGD ngắn dùng đúng ID train từ split đã lưu. Nó không tính điểm validation/test và không thay thế ablation full-data. Checkpoint của probe không dùng để resume runner chính.
+
+WiPose ở đây là đầu vào [B,9,30,5], đầu ra [B,18,2]; confidence không phải Z. TCN xử lý năm mẫu CSI trong một đầu vào, không phải năm pose liên tiếp. Loss vẫn plain MSE; chưa thêm bone/smooth/sym hay loss robust. PCK dùng ngưỡng theo kích thước thân người, không phải 20/50 pixel cố định.
+
+Recipe chung này khác script tác giả phát hành (AdamW, split theo thư mục và confidence-weighted loss). Vì vậy gọi baseline là **kiến trúc HPE-Li gốc dưới protocol chung**, không gọi đây là tái lập toàn bộ pipeline tác giả. Split random-frame cũng chưa kiểm tra tổng quát sang người/sequence mới.
